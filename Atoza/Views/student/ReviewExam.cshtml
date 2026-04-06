@@ -1,0 +1,90 @@
+@model ATOZA.Domain.Entities.Submission
+@{
+    ViewBag.Title = "Chi tiết bài làm - " + Model.Exam.Title;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    // Sắp xếp câu hỏi theo thứ tự để hiển thị đúng
+    var questions = Model.Exam.Questions.OrderBy(q => q.OrderNumber).ToList();
+}
+
+<div class="container mt-4 pb-5">
+    <div class="card border-0 shadow-sm mb-4 bg-light">
+        <div class="card-body text-center">
+            <h2 class="fw-bold text-primary">@Model.Exam.Title</h2>
+            <p class="text-muted">Đã nộp lúc: @Model.SubmitTime.ToString("HH:mm dd/MM/yyyy")</p>
+            <div class="display-4 fw-bold @(Model.Score >= 5 ? "text-success" : "text-danger")">
+                @Model.Score <span class="fs-4 text-dark">/ 10 điểm</span>
+            </div>
+            <a href="@Url.Action("MyAssignments", "Student")" class="btn btn-secondary mt-3">
+                <i class="fa-solid fa-arrow-left"></i> Quay lại danh sách
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            @foreach (var q in questions)
+            {
+                // Tìm câu trả lời của học sinh cho câu hỏi này
+                var myAns = Model.SubmissionDetails.FirstOrDefault(d => d.QuestionId == q.Id);
+
+                // Xác định trạng thái đúng/sai
+                bool isCorrect = myAns != null && myAns.IsCorrect;
+                string cardClass = isCorrect ? "border-success" : "border-danger";
+                string iconStatus = isCorrect ? "<i class='fa-solid fa-check text-success'></i>" : "<i class='fa-solid fa-xmark text-danger'></i>";
+
+                <div class="card mb-3 @cardClass" style="border-left-width: 5px;">
+                    <div class="card-body">
+                        <h5 class="card-title d-flex justify-content-between">
+                            <span>Câu @q.OrderNumber: @Html.Raw(iconStatus)</span>
+                        </h5>
+                        <p class="card-text fw-bold">@q.Content</p>
+
+                        <div class="list-group">
+                            @foreach (var opt in new[] { "A", "B", "C", "D" })
+                            {
+                                string optText = "";
+                                if (opt == "A") { optText = q.OptionA; }
+                                else if (opt == "B") { optText = q.OptionB; }
+                                else if (opt == "C") { optText = q.OptionC; }
+                                else if (opt == "D") { optText = q.OptionD; }
+
+                                // Logic tô màu:
+                                // - Màu xanh lá (bg-success): Nếu đây là đáp án đúng của đề
+                                // - Màu đỏ (bg-danger): Nếu học sinh chọn sai đáp án này
+                                // - Màu xám đậm: Nếu học sinh chọn đúng đáp án này (trùng với màu xanh ở trên)
+
+                                string itemClass = "";
+
+                                // Nếu đây là đáp án đúng của hệ thống
+                                if (q.CorrectAnswer?.Trim().ToUpper() == opt)
+                                {
+                                    itemClass = "list-group-item-success fw-bold"; // Tô xanh đáp án đúng
+                                }
+                                // Nếu đây là đáp án học sinh đã chọn (nhưng bị sai)
+                                else if (myAns != null && myAns.Answer?.Trim().ToUpper() == opt)
+                                {
+                                    itemClass = "list-group-item-danger"; // Tô đỏ đáp án chọn sai
+                                }
+
+                                <div class="list-group-item @itemClass">
+                                    <span class="fw-bold">@opt.</span> @optText
+
+                                    @if (myAns != null && myAns.Answer?.Trim().ToUpper() == opt)
+                                    {
+                                        <span class="badge bg-secondary float-end">Bạn chọn</span>
+                                    }
+                                </div>
+                            }
+                        </div>
+
+                        @if (myAns == null)
+                        {
+                            <div class="mt-2 text-warning"><i class="fa-solid fa-triangle-exclamation"></i> Bạn đã bỏ qua câu này.</div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>

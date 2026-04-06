@@ -1,0 +1,145 @@
+@model IEnumerable<ATOZA.Domain.Entities.Class>
+
+@{
+    ViewBag.Title = "Lớp học của tôi";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    /* CSS nội bộ để làm đẹp nhanh */
+    .hover-card {
+        transition: all 0.3s ease;
+        border: none;
+        overflow: hidden;
+    }
+
+        .hover-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+        }
+
+    .card-header-gradient {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        height: 80px;
+        position: relative;
+    }
+
+    .teacher-avatar {
+        width: 50px;
+        height: 50px;
+        background-color: #fff;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: absolute;
+        bottom: -25px;
+        right: 20px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        font-size: 24px;
+        color: #764ba2;
+    }
+
+    .class-code-badge {
+        background-color: #f8f9fa;
+        border: 1px dashed #ced4da;
+        color: #495057;
+        font-family: monospace;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.9em;
+    }
+</style>
+
+<div class="container py-5">
+    @* --- Header Section: Gom nhóm tiêu đề và nút bấm --- *@
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-5">
+        <div class="mb-3 mb-md-0">
+            <h2 class="fw-bold text-dark"><i class="fa-solid fa-graduation-cap me-2 text-primary"></i>Lớp Học Của Tôi</h2>
+            <p class="text-muted mb-0">Quản lý và truy cập các lớp học bạn đang tham gia</p>
+        </div>
+
+        <div class="d-flex gap-2">
+            <a href="@Url.Action("MyAssignments", "Student")" class="btn btn-light border fw-bold shadow-sm">
+                <i class="fa-solid fa-clock-rotate-left me-2 text-secondary"></i>Lịch sử làm bài
+            </a>
+            <a href="@Url.Action("JoinClass", "Student")" class="btn btn-primary fw-bold shadow-sm px-4">
+                <i class="fa-solid fa-plus me-2"></i>Tham gia lớp mới
+            </a>
+        </div>
+    </div>
+
+    @* --- Thông báo (Alert) --- *@
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show shadow-sm border-0 border-start border-5 border-success" role="alert">
+            <div class="d-flex align-items-center">
+                <i class="fa-solid fa-circle-check fs-4 me-3 text-success"></i>
+                <div>
+                    <strong>Thành công!</strong> @TempData["Success"]
+                </div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @* --- Danh sách lớp học --- *@
+    @if (!Model.Any())
+    {
+        <div class="text-center py-5 bg-white rounded-4 shadow-sm border">
+            <img src="https://cdn-icons-png.flaticon.com/512/7486/7486744.png" style="width: 150px; opacity: 0.8" class="mb-4" alt="Empty state" />
+            <h4 class="fw-bold text-dark">Bạn chưa tham gia lớp học nào</h4>
+            <p class="text-muted">Hãy xin mã lớp từ giáo viên và nhấn nút "Tham gia lớp mới" ở góc trên nhé.</p>
+            <a href="@Url.Action("JoinClass", "Student")" class="btn btn-outline-primary mt-2 rounded-pill px-4">Tham gia ngay</a>
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+            @foreach (var item in Model)
+            {
+                <div class="col-md-6 col-lg-4">
+                    <div class="card shadow-sm h-100 hover-card rounded-4">
+                        @* Phần trang trí màu mè bên trên *@
+                        <div class="card-header-gradient">
+                            <div class="teacher-avatar">
+                                <i class="fa-solid fa-chalkboard-user"></i>
+                            </div>
+                        </div>
+
+                        <div class="card-body pt-4">
+                            @* Role Badge *@
+                            <div class="mb-2">
+                                <span class="badge bg-light text-primary border border-primary rounded-pill px-3">Học sinh</span>
+                            </div>
+
+                            @* Tên lớp *@
+                            <h5 class="card-title fw-bold text-dark mb-1 text-truncate" title="@item.ClassName">
+                                @item.ClassName
+                            </h5>
+
+                            @* Tên giáo viên *@
+                            <p class="text-muted small mb-3">
+                                <i class="fa-regular fa-user me-1"></i> GV: @item.Teacher.FullName
+                            </p>
+
+                            <hr class="text-muted opacity-25">
+
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="small text-muted">
+                                    Mã lớp: <span class="class-code-badge user-select-all">@item.JoinCode</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card-footer bg-white border-0 p-3 pt-0">
+                            <a href="@Url.Action("ClassDetail", "Student", new { id = item.Id })" class="btn btn-primary w-100 rounded-pill fw-bold py-2">
+                                Vào lớp ngay <i class="fa-solid fa-arrow-right ms-1"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

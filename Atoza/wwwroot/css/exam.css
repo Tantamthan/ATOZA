@@ -1,0 +1,463 @@
+﻿/* #region 1. GLOBAL & VARIABLES 🌍 */
+/* ====================================
+   1. GLOBAL & VARIABLES 🌍
+   ==================================== */
+:root {
+    --primary-color: #ff6a00;
+    --primary-light: #fff3e0;
+    --bg-color: #f4f6f8;
+    --text-color: #333;
+    --border-radius: 8px;
+    --flag-color: #9c27b0;
+    --header-height: 70px;
+}
+
+body {
+    background-color: var(--bg-color);
+    font-family: 'Inter', sans-serif;
+    color: var(--text-color);
+    padding-top: 70px;
+    user-select: none;
+}
+
+.main-content-wrapper {
+    padding-left: 15px;
+    padding-right: 15px;
+}
+/* #endregion 1. GLOBAL & VARIABLES 🌍 */
+
+/* #region 2. HEADER & FIXED NAVIGATION ⏱️ */
+/* ====================================
+   2. HEADER & FIXED NAVIGATION ⏱️
+   ==================================== */
+.exam-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 40px;
+    background: white;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    z-index: 1000;
+    padding: 0 1px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.exam-title {
+    font-weight: 600;
+    font-size: 1.1rem;
+    max-width: 40vw;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.timer-badge {
+    background-color: var(--primary-light);
+    color: var(--primary-color);
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-family: monospace;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+    .timer-badge.danger {
+        background-color: #ffebee;
+        color: #d32f2f;
+        animation: pulse 1s infinite;
+    }
+
+.btn-primary-custom {
+    background-color: var(--primary-color);
+    border: none;
+    color: white;
+}
+
+    .btn-primary-custom:hover {
+        background-color: #e65c00;
+        color: white;
+    }
+/* #endregion 2. HEADER & FIXED NAVIGATION ⏱️ */
+
+/* #region 3. QUESTION CARD & CONTENT 🧩 */
+/* ====================================
+   3. QUESTION CARD & CONTENT 🧩
+   ==================================== */
+.question-card {
+    background: white;
+    border-radius: var(--border-radius);
+    padding: 12px 24px 12px 24px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    border: 1px solid transparent;
+    scroll-margin-top: 80px;
+    position: relative;
+}
+
+    .question-card.active-view {
+        border-color: var(--primary-color);
+    }
+
+.q-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #eee;
+}
+
+.q-number {
+    font-weight: 700;
+    color: var(--primary-color);
+    font-size: 1rem;
+    background: var(--primary-light);
+    padding: 4px 12px;
+    border-radius: 6px;
+}
+
+.q-content {
+    font-size: 1.05rem;
+    line-height: 1.6;
+    margin-bottom: 20px;
+    font-weight: 500;
+}
+
+/* --- Flag Button (.btn-flag) --- */
+.btn-flag {
+    border: none;
+    background: none;
+    color: #aaa;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.btn-flag:hover {
+    color: var(--flag-color);
+    font-weight: 600;
+}
+
+.btn-flag.active {
+    color: var(--flag-color);
+    font-weight: 600;
+}
+
+    .btn-flag.active i {
+        font-weight: 900 !important;
+    }
+
+/* --- Clear Selection Button (.btn-clear-selection) --- */
+.btn-clear-selection {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 12px;
+    font-size: 0.85rem;
+    color: #90a4ae;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    border-radius: 4px;
+    background-color: transparent;
+    border: 1px solid transparent;
+}
+
+    .btn-clear-selection:hover {
+        color: #ff3d00;
+        background-color: #ffe0b2;
+        border-color: #ffb74d;
+    }
+
+    .btn-clear-selection:active {
+        transform: translateY(1px);
+        box-shadow: none;
+        background-color: #ffab40;
+        color: white;
+    }
+
+    .btn-clear-selection i {
+        color: inherit;
+        font-size: 1rem;
+    }
+/* #endregion 3. QUESTION CARD & CONTENT 🧩 */
+
+/* #region 4. OPTIONS / RADIO BUTTONS 🔘 */
+/* ====================================
+   4. OPTIONS / RADIO BUTTONS 🔘
+   ==================================== */
+.option-input {
+    display: none;
+}
+
+.option-label {
+    display: flex;
+    align-items: flex-start;
+    padding: 12px 16px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+    .option-label:hover {
+        background-color: #fff8f5;
+        border-color: #ffccbc;
+    }
+
+.option-key {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: #f5f5f5;
+    color: #666;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    flex-shrink: 0;
+    border: 1px solid #ddd;
+}
+
+.option-input:checked + .option-label {
+    background-color: var(--primary-light);
+    border-color: var(--primary-color);
+}
+
+    .option-input:checked + .option-label .option-key {
+        background-color: var(--primary-color);
+        color: white;
+        border-color: var(--primary-color);
+    }
+/* #endregion 4. OPTIONS / RADIO BUTTONS 🔘 */
+
+/* #region 5. SIDEBAR / QUESTION PALETTE 📋 */
+/* ====================================
+   5. SIDEBAR / QUESTION PALETTE 📋
+   ==================================== */
+.sidebar-right {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 25%; /* Cân nhắc: trên màn hình 1920px thì 25% là rất to (~480px), có thể dùng max-width: 350px */
+    max-width: 380px; /* KHUYẾN NGHỊ: Thêm dòng này để sidebar không quá to trên màn hình lớn */
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    padding-top: var(--header-height, 40px); /* Fallback 60px nếu biến chưa khai báo */
+    padding-bottom: 20px;
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+/* --- Question Grid (Palette) --- */
+.palette-grid {
+    overflow-y: auto;
+    flex-grow: 1;
+    display: grid;
+    /* Giữ nguyên 5 cột */
+    grid-template-columns: repeat(5, 1fr);
+    /* Hoặc dùng dòng dưới đây nếu muốn số cột tự động theo kích thước màn hình */
+    /* grid-template-columns: repeat(auto-fill, minmax(45px, 1fr)); */
+
+    gap: 8px;
+    margin-top: 10px;
+    padding-bottom: 10px;
+    padding-right: 5px; /* Giảm padding right để thanh cuộn đẹp hơn */
+    /* --- QUAN TRỌNG: FIX LỖI GIÃN DÒNG --- */
+    align-content: start; /* Dồn tất cả các ô lên phía trên, không giãn xuống dưới */
+    grid-auto-rows: min-content; /* Đảm bảo chiều cao dòng chỉ bằng nội dung */
+}
+
+    /* Tùy chỉnh thanh cuộn cho đẹp (Webkit browsers) */
+    .palette-grid::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .palette-grid::-webkit-scrollbar-thumb {
+        background-color: #ccc;
+        border-radius: 4px;
+    }
+
+/* --- Question Item (.p-item) --- */
+.p-item {
+    width: 100%;
+    /* aspect-ratio: 3/2; */
+    aspect-ratio: 1/1; /* KHUYẾN NGHỊ: Nên để hình vuông (1/1) nhìn sẽ gọn hơn 3/2 */
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #555;
+    background-color: #f5f5f5;
+    cursor: pointer;
+    position: relative;
+    border: 1px solid #f5f5f5;
+    transition: all 0.2s;
+    user-select: none; /* Ngăn bôi đen text khi click nhanh */
+}
+
+    .p-item:hover {
+        background-color: #e0e0e0;
+        transform: translateY(-1px); /* Hiệu ứng nổi nhẹ */
+    }
+
+    .p-item.answered {
+        background-color: var(--primary-color, #0d6efd); /* Fallback màu xanh */
+        color: white;
+        border-color: var(--primary-color, #0d6efd);
+    }
+
+    .p-item.viewing {
+        border: 2px solid #29b6f6;
+        background-color: #e1f5fe; /* Thêm màu nền nhạt để dễ nhìn hơn */
+    }
+
+    /* --- Flagged Item State --- */
+    .p-item.flagged {
+        border: 1px solid var(--flag-color, #dc3545);
+        color: var(--flag-color, #dc3545);
+        background-color: #fce4ec;
+        display: flex;
+        flex-direction: column;
+        line-height: 1;
+        /* padding-top: 5px; -> Bỏ cái này để canh giữa tốt hơn nếu dùng flex */
+        gap: 2px; /* Khoảng cách giữa số và cờ */
+    }
+
+        .p-item.flagged .flag-icon {
+            font-size: 0.65rem; /* Nhỏ lại chút cho cân đối */
+            color: var(--flag-color, #dc3545);
+        }
+
+        .p-item.flagged.answered {
+            background-color: var(--primary-color, #0d6efd);
+            color: white;
+            border-color: var(--flag-color, #dc3545); /* Viền đỏ để biết đang flag */
+        }
+
+            .p-item.flagged.answered .flag-icon {
+                color: #ffd740; /* Cờ màu vàng khi đã trả lời */
+            }
+
+/* --- Navigator & Legend (Fixed Bottom) --- */
+.question-navigator-fixed-bottom {
+    flex-shrink: 0;
+    display: block;
+    background-color: #f8f9fa;
+    border-top: 1px solid #dee2e6;
+    padding: 15px;
+    margin-top: auto;
+    background: white;
+    /* border-radius: var(--border-radius); -> Bỏ border-radius để nó dính liền đẹp hơn */
+    border-bottom-left-radius: var(--border-radius);
+    border-bottom-right-radius: var(--border-radius);
+    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.05); /* Shadow ngược lên trên */
+}
+
+    .question-navigator-fixed-bottom input {
+        max-width: 80px;
+        text-align: center;
+    }
+
+/* --- Legend Styling (Chú giải) --- */
+.legend-info {
+    font-size: 0.85rem;
+    color: #6c757d;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.legend-box {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+    margin-right: 8px;
+    flex-shrink: 0;
+}
+
+    /* Style cho các trạng thái cụ thể */
+    .legend-box.answered {
+        background: var(--primary-color, #0d6efd);
+    }
+
+    .legend-box.viewing {
+        border: 2px solid #29b6f6;
+        background: #e1f5fe;
+    }
+
+    .legend-box.flagged-style {
+        border: 1px solid var(--flag-color, #dc3545);
+        background: #fce4ec;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+        .legend-box.flagged-style .fa-flag {
+            color: var(--flag-color, #dc3545);
+            font-size: 10px;
+        }
+/* #endregion 5. SIDEBAR / QUESTION PALETTE 📋 */
+
+/* #region 6. UTILITIES & MEDIA QUERIES 📱 */
+/* ====================================
+   6. UTILITIES & MEDIA QUERIES 📱
+   ==================================== */
+
+@keyframes pulse {
+    0% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+@keyframes highlightFlash {
+    0% {
+        background-color: rgba(41, 182, 246, 0.3);
+    }
+
+    100% {
+        background-color: white;
+    }
+}
+
+.highlight-flash {
+    animation: highlightFlash 2s ease-out;
+}
+
+@media (max-width: 991px) {
+    .sidebar-right {
+        display: none;
+    }
+
+    .exam-title {
+        font-size: 0.95rem;
+        max-width: 200px;
+    }
+}
+/* #endregion 6. UTILITIES & MEDIA QUERIES 📱 */

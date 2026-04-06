@@ -1,0 +1,51 @@
+@{
+    Layout = null;
+    string rawContentFromController = ViewBag.RawContent as string ?? "";
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tạo Đề Thi - Azota Clone</title>
+    <link rel="stylesheet" href="~/css/CreateExam.css" />
+
+</head>
+<body>
+
+    <header>
+        <h3>📝 Trình Soạn Thảo Đề Thi</h3>
+        <div>
+            <button class="btn btn-warning" onclick="simulateUpload()">📂 Tải file mẫu</button>
+            <button class="btn btn-success" onclick="saveExam()">💾 Lưu Đề Thi</button>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="editor-col">
+            <textarea id="rawContent" spellcheck="false" placeholder="Dán nội dung đề thi vào đây...">@rawContentFromController</textarea>
+        </div>
+
+        <div class="preview-col">
+            <div id="previewContent">
+            </div>
+        </div>
+    </div>
+    @Html.Partial("SaveExam")
+    <script src="~/js/CreateExam.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const textArea = document.getElementById('rawContent');
+
+            // Nếu textarea có dữ liệu (do Razor đổ vào từ Controller)
+            if (textArea.value.trim().length > 0) {
+                // Gọi hàm processText() ngay lập tức
+                // Kiểm tra xem hàm đã được định nghĩa chưa để tránh lỗi
+                if (typeof processText === "function") {
+                    processText();
+                }
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,56 @@
+@model IEnumerable<ATOZA.Domain.Entities.Class>
+
+@{
+    ViewBag.Title = "Danh sách lớp học";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container py-5">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="@Url.Action("Index", "Teacher")">Dashboard</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Danh sách lớp</li>
+        </ol>
+    </nav>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="fw-bold">Lớp học của tôi</h3>
+        <a href="@Url.Action("CreateClass", "Teacher")" class="btn btn-warning text-white fw-bold">
+            <i class="fa-solid fa-plus"></i> Tạo lớp mới
+        </a>
+    </div>
+
+    @if (Model.Count() == 0)
+    {
+        <div class="text-center py-5">
+            <img src="https://azota.vn/assets/images/empty-state.png" style="width: 200px; opacity: 0.5" />
+            <p class="text-muted mt-3">Bạn chưa tạo lớp học nào.</p>
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+            @foreach (var item in Model)
+            {
+                <div class="col-md-4">
+                    <div class="card shadow-sm border-0 h-100">
+                        <div class="card-body">
+                            <h5 class="card-title fw-bold text-primary">@item.ClassName</h5>
+                            <p class="card-text text-muted small">
+                                <i class="fa-regular fa-calendar me-1"></i> Tạo ngày: @item.CreatedAt.ToString("dd/MM/yyyy")
+                            </p>
+                            <hr />
+                            <div class="d-flex justify-content-between">
+                                <a href="@Url.Action("ClassDetail", "Teacher", new { id = item.Id })" class="btn btn-sm btn-outline-primary">
+                                    <i class="fa-solid fa-eye me-1"></i> Xem chi tiết
+                                </a>
+
+                                <button class="btn btn-sm btn-outline-danger"><i class="fa-solid fa-trash"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

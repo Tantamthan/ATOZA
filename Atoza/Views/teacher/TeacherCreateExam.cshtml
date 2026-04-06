@@ -1,0 +1,152 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Tạo Đề Thi";
+}
+
+<style>
+    /* CSS Đơn giản hóa */
+    .upload-wrapper {
+        max-width: 800px;
+        margin: 40px auto;
+    }
+
+    /* Style cho Tab */
+    .nav-tabs .nav-link {
+        cursor: pointer;
+        color: #555;
+        font-weight: 600;
+        border-radius: 0;
+    }
+
+        .nav-tabs .nav-link.active {
+            color: #ff6a00;
+            border-bottom: 3px solid #ff6a00;
+            background: none;
+        }
+
+    /* Khu vực Kéo thả */
+    .drop-zone {
+        border: 2px dashed #ccc;
+        border-radius: 10px;
+        padding: 50px 20px;
+        text-align: center;
+        cursor: pointer;
+        transition: 0.3s;
+        background: #f9f9f9;
+    }
+
+        .drop-zone:hover, .drop-zone.dragover {
+            border-color: #ff6a00;
+            background-color: #fffdf9;
+        }
+
+        .drop-zone i {
+            font-size: 3rem;
+            color: #ff6a00;
+            margin-bottom: 15px;
+        }
+
+    /* Loading */
+    .loading-overlay {
+        display: none;
+        margin-top: 20px;
+        text-align: center;
+    }
+</style>
+
+<div class="upload-wrapper">
+    <h2 class="fw-bold mb-4 text-center">📝 Tạo Đề Thi Mới</h2>
+
+    <ul class="nav nav-tabs nav-fill mb-4" role="tablist">
+        <li class="nav-item">
+            <a class="nav-link active" onclick="switchTab('tab-upload')">📄 Tải từ File (Word/PDF)</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" onclick="switchTab('tab-manual')">✍️ Nhập Tay</a>
+        </li>
+    </ul>
+
+    <div class="tab-content">
+
+        <div id="tab-upload" class="tab-pane fade show active">
+            <form action="@Url.Action("ProcessExamFile", "Teacher")" method="post" enctype="multipart/form-data" id="uploadForm">
+                @Html.AntiForgeryToken()
+
+                <div class="drop-zone" id="dropZone">
+                    <input type="file" name="fileUpload" id="fileInput" accept=".doc,.docx,.pdf" hidden />
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    <h5>Nhấn để chọn hoặc Kéo thả file vào đây</h5>
+                    <p class="text-muted small">Hỗ trợ định dạng: .docx, .pdf</p>
+                </div>
+            </form>
+
+            <div class="loading-overlay" id="loading">
+                <div class="spinner-border text-warning" role="status"></div>
+                <p class="mt-2 text-muted">Đang xử lý và trích xuất dữ liệu...</p>
+            </div>
+        </div>
+
+        <div id="tab-manual" class="tab-pane fade text-center py-5">
+            <i class="fa-solid fa-pen-to-square mb-3" style="font-size: 3rem; color: #28a745;"></i>
+            <h5 class="mb-3">Bạn muốn tự soạn thảo hoặc copy/paste nội dung?</h5>
+
+            <a href="@Url.Action("CreateExam", "Exam")" class="btn btn-success btn-lg px-5">
+                Chuyển đến Trình soạn thảo →
+            </a>
+        </div>
+    </div>
+</div>
+
+
+
+<script>
+    // 1. Logic Chuyển Tab đơn giản
+    function switchTab(tabId) {
+        // Ẩn tất cả tab pane, bỏ active nav
+        document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('show', 'active'));
+        document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+
+        // Hiện tab được chọn
+        document.getElementById(tabId).classList.add('show', 'active');
+        event.target.classList.add('active');
+    }
+
+    // 2. Logic Upload File (Kéo thả & Click)
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    const uploadForm = document.getElementById('uploadForm');
+    const loading = document.getElementById('loading');
+
+    // Click vào vùng dropZone -> Mở hộp thoại chọn file
+    dropZone.addEventListener('click', () => fileInput.click());
+
+    // Hiệu ứng khi kéo file vào
+    dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('dragover');
+    });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+
+    // Khi thả file
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('dragover');
+
+        if (e.dataTransfer.files.length > 0) {
+            fileInput.files = e.dataTransfer.files; // Gán file vào input
+            submitForm(); // Tự động gửi
+        }
+    });
+
+    // Khi chọn file từ hộp thoại
+    fileInput.addEventListener('change', () => {
+        if (fileInput.files.length > 0) submitForm();
+    });
+
+    // Hàm gửi form
+    function submitForm() {
+        dropZone.style.display = 'none'; // Ẩn vùng upload
+        loading.style.display = 'block'; // Hiện loading
+        uploadForm.submit(); // Submit về Server (Teacher/ProcessExamFile)
+    }
+</script>

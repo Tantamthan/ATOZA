@@ -1,0 +1,67 @@
+@model ATOZA.Domain.Entities.Exam
+@{
+    // Biến này thường được khai báo trong View chính, nhưng nếu Model.Questions là null
+    // thì ta cần có giá trị dự phòng.
+    var totalQuestionCount = Model.Questions?.Count() ?? 0;
+    // Lấy số câu hỏi nhỏ nhất và lớn nhất
+    var minNum = Model.Questions?.Min(q => q.OrderNumber) ?? 1;
+    var maxNum = Model.Questions?.Max(q => q.OrderNumber) ?? totalQuestionCount;
+}
+
+<div class="col-lg-3 d-none d-lg-block">
+    <div class="sidebar-right">
+
+        <h6 class="fw-bold mb-3 border-bottom pb-2">Danh sách câu hỏi</h6>
+
+        <div class="palette-grid">
+            @if (Model.Questions != null)
+            {
+                foreach (var q in Model.Questions)
+                {
+                    <div class="p-item"
+                         id="grid-item-@q.OrderNumber"
+                         onclick="scrollToQuestion(@q.OrderNumber)">
+                        @q.OrderNumber
+                    </div>
+                }
+            }
+        </div>
+
+        <div class="p-3 border-top question-navigator-fixed-bottom">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <button type="button" class="btn btn-sm btn-outline-secondary flex-shrink-0" title="Về câu hỏi đầu tiên" onclick="scrollToQuestion(@minNum)">
+                    <i class="fa-solid fa-angles-up"></i> Lên đầu
+                </button>
+
+                <input type="number"
+                       id="question-jump-input"
+                       class="form-control form-control-sm mx-2 text-center"
+                       placeholder="Số câu"
+                       min="@minNum"
+                       max="@maxNum"
+                       onkeydown="if(event.key==='Enter'){event.preventDefault(); jumpToQuestion(this.value); this.blur();}">
+
+                <button type="button" class="btn btn-sm btn-outline-secondary flex-shrink-0" title="Về câu hỏi cuối cùng" onclick="scrollToQuestion(@maxNum)">
+                    Về cuối <i class="fa-solid fa-angles-down"></i>
+                </button>
+            </div>
+
+            <div class="legend-info">
+                <div class="legend-item">
+                    <div class="legend-box answered"></div>
+                    <span>Đã trả lời (<b id="answered-count">0</b>/<b id="total-count">@totalQuestionCount</b>)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-box flagged-style">
+                        <i class="fa-solid fa-flag"></i>
+                    </div>
+                    <span>Đánh dấu</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-box viewing"></div>
+                    <span>Đang xem</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

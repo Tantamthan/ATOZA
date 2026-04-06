@@ -1,0 +1,125 @@
+﻿@{
+    ViewData["Title"] = "Nền tảng tạo đề thi & bài tập online";
+}
+
+<div class="hero-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6 mb-5 mb-lg-0">
+                <span class="badge bg-warning text-dark mb-3 px-3 py-2 rounded-pill">✨ Phiên bản mới 2.0</span>
+                <h1 class="display-4 fw-bold mb-3 lh-base">
+                    Nền tảng tạo đề thi,<br>
+                    <span style="color: #ff6a00">bài tập online</span>
+                </h1>
+                <p class="lead text-muted mb-5">
+                    Giúp giáo viên tiết kiệm 90% thời gian chấm bài. Số hóa đề thi từ file Word/PDF chỉ trong 1 phút. Hỗ trợ trộn đề tự động.
+                </p>
+                <div class="d-flex gap-3 flex-wrap">
+                    <a asp-controller="Account" asp-action="Register" class="btn btn-orange btn-lg px-5 rounded-pill shadow-sm">Đăng ký Free</a>
+                    <a href="#features" class="btn btn-outline-dark btn-lg px-4 rounded-pill">Tìm hiểu thêm</a>
+                </div>
+
+                <div class="mt-5 pt-4 border-top d-flex gap-5">
+                    <div>
+                        <h4 class="fw-bold mb-0">1M+</h4>
+                        <small class="text-muted">Học sinh</small>
+                    </div>
+                    <div>
+                        <h4 class="fw-bold mb-0">50k+</h4>
+                        <small class="text-muted">Giáo viên</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-5 offset-lg-1">
+                <div class="upload-box shadow" onclick="document.getElementById('fileInput').click()">
+                    <div class="mb-4">
+                        <i class="fa-solid fa-cloud-arrow-up" style="font-size: 4rem; color: #ff6a00;"></i>
+                    </div>
+                    <h3 class="fw-bold mb-2">Tải lên đề thi</h3>
+                    <p class="text-muted mb-4">Hỗ trợ định dạng .docx, .pdf, .xlsx</p>
+
+                    <div class="d-grid gap-2 col-8 mx-auto">
+                        <button class="btn btn-orange rounded-pill">Chọn file ngay</button>
+                    </div>
+
+                    <p class="text-primary fst-italic mt-3 small">hoặc kéo thả file vào đây</p>
+                    <input type="file" id="fileInput" style="display: none;" />
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container py-5" id="features">
+    <div class="text-center mb-5" style="max-width: 700px; margin: 0 auto;">
+        <h2 class="fw-bold mb-3">Tại sao 50.000+ giáo viên tin dùng?</h2>
+        <p class="text-muted fs-5">Giải pháp toàn diện giúp chuyển đổi số công tác kiểm tra đánh giá cho Giáo viên và Nhà trường.</p>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm p-4 text-center hover-card">
+                <div class="card-body">
+                    <div class="feature-icon">
+                        <i class="fa-solid fa-file-word"></i>
+                    </div>
+                    <h4 class="card-title fw-bold mb-3">Giao bài tập dễ dàng</h4>
+                    <p class="card-text text-muted">Upload file Word/PDF trực tiếp. Hệ thống tự động tách câu hỏi và nhận diện đáp án.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm p-4 text-center hover-card">
+                <div class="card-body">
+                    <div class="feature-icon">
+                        <i class="fa-solid fa-bolt"></i>
+                    </div>
+                    <h4 class="card-title fw-bold mb-3">Chấm bài siêu tốc</h4>
+                    <p class="card-text text-muted">Chấm trắc nghiệm ngay lập tức. Chấm tự luận bằng thao tác chạm/click trên ảnh bài làm.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm p-4 text-center hover-card">
+                <div class="card-body">
+                    <div class="feature-icon">
+                        <i class="fa-solid fa-chart-pie"></i>
+                    </div>
+                    <h4 class="card-title fw-bold mb-3">Thống kê chi tiết</h4>
+                    <p class="card-text text-muted">Bảng điểm Excel, biểu đồ phổ điểm, lịch sử làm bài giúp giáo viên nắm bắt học lực.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="bg-light py-5 mt-5">
+    <div class="container text-center">
+        <h3 class="fw-bold mb-4">Học sinh tra cứu điểm thi</h3>
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+                <form action="/Exam/Result" method="get" class="position-relative">
+                    <div class="input-group input-group-lg shadow-sm">
+                        <input type="text" class="form-control border-0" placeholder="Nhập số báo danh hoặc Mã đề thi..." aria-label="Search">
+                        <button class="btn btn-orange px-5" type="submit">
+                            <i class="fa-solid fa-magnifying-glass me-2"></i>Tra cứu
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.getElementById('fileInput').addEventListener('change', function () {
+            if (this.files.length > 0) {
+                if (confirm('Bạn cần đăng nhập để xử lý file: ' + this.files[0].name + '. Đến trang đăng nhập ngay?')) {
+                    window.location.href = '/Account/Login';
+                }
+            }
+        });
+    </script>
+}

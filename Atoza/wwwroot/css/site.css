@@ -1,0 +1,91 @@
+﻿/* ========================================= */
+/* CSS DÙNG CHUNG CHO TOÀN SITE (Từ _Layout) */
+/* ========================================= */
+:root {
+    --primary-color: #ff6a00; /* Cam Azota */
+}
+
+a {
+    text-decoration: none;
+}
+
+/* Navbar đẹp */
+.navbar-brand {
+    font-weight: bold;
+    font-size: 1.5rem;
+    color: var(--primary-color) !important;
+}
+
+.nav-link {
+    font-weight: 500;
+    color: #333;
+}
+
+    .nav-link:hover {
+        color: var(--primary-color);
+    }
+
+.btn-outline-primary-custom {
+    border: 1px solid var(--primary-color);
+    color: var(--primary-color);
+}
+
+    .btn-outline-primary-custom:hover {
+        background-color: var(--primary-color);
+        color: white;
+    }
+
+/* Dropdown menu đẹp hơn */
+.dropdown-item:active {
+    background-color: var(--primary-color);
+}
+
+/* ========================================= */
+/* CSS DÀNH RIÊNG CHO TRANG INDEX/HOME */
+/* ========================================= */
+.hero-section {
+    background-color: #f8f9fa;
+    padding: 100px 0 80px 0; /* Tăng padding top chút cho thoáng */
+}
+
+.upload-box {
+    background: white;
+    border: 2px dashed #ff6a00;
+    border-radius: 15px;
+    padding: 40px;
+    text-align: center;
+    transition: all 0.3s;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+    .upload-box:hover {
+        background-color: #fff8f5;
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(255, 106, 0, 0.15);
+    }
+
+.btn-orange {
+    background-color: #ff6a00;
+    color: white;
+    font-weight: bold;
+    border: none;
+}
+
+    .btn-orange:hover {
+        background-color: #e65c00;
+        color: white;
+    }
+
+.feature-icon {
+    font-size: 2.5rem;
+    color: #ff6a00;
+    margin-bottom: 1.5rem;
+    background: #fff3e6;
+    width: 80px;
+    height: 80px;
+    line-height: 80px;
+    border-radius: 50%;
+    display: inline-block;
+}

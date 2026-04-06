@@ -1,0 +1,102 @@
+@model IEnumerable<ATOZA.Application.DTOs.Submission.StudentReportDto>
+
+@{
+    ViewBag.Title = "Bảng điểm chi tiết";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h4 class="fw-bold">Bảng điểm: @ViewBag.ExamTitle</h4>
+            <p class="text-muted">Lớp: @ViewBag.ClassName</p>
+        </div>
+        <a href="@Url.Action("ClassAssignmentsList", "Teacher", new { classId = ViewBag.ClassId })" class="btn btn-outline-secondary">
+            <i class="fa-solid fa-arrow-left"></i> Quay lại
+        </a>
+    </div>
+
+    @* Thống kê nhanh *@
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body text-center">
+                    <h3>@Model.Count(x => x.IsSubmitted) / @Model.Count()</h3>
+                    <small>Đã nộp bài</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-secondary text-white">
+                <div class="card-body text-center">
+                    <h3>@Model.Count(x => !x.IsSubmitted)</h3>
+                    <small>Chưa làm</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <table class="table table-bordered table-hover align-middle">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="text-center" style="width: 50px;">STT</th>
+                        <th>Họ và tên</th>
+                        <th>Email</th>
+                        <th class="text-center">Trạng thái</th>
+                        <th class="text-center">Điểm số</th>
+                        <th class="text-center">Thời gian nộp</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{ int index = 1; }
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td class="text-center">@(index++)</td>
+                            <td class="fw-bold">@item.StudentName</td>
+                            <td>@item.Email</td>
+
+                            @* Cột Trạng Thái *@
+                            <td class="text-center">
+                                @if (item.IsSubmitted)
+                                {
+                                    <span class="badge bg-success">Đã nộp</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger">Chưa làm</span>
+                                }
+                            </td>
+
+                            @* Cột Điểm Số *@
+                            <td class="text-center fw-bold fs-5">
+                                @if (item.IsSubmitted)
+                                {
+                                    if (item.Score >= 5)
+                                    {
+                                        <span class="text-success">@item.Score</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-danger">@item.Score</span>
+                                    }
+                                }
+                                else
+                                {
+                                    <span class="text-muted">-</span>
+                                }
+                            </td>
+
+                            @* Cột Thời Gian *@
+                            <td class="text-center text-muted small">
+                                @(item.IsSubmitted ? item.FinishedAt.Value.ToString("dd/MM/yyyy HH:mm") : "--")
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

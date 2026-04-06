@@ -1,0 +1,39 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Remove="wwwroot\css\CreateExam.css" />
+    <Content Remove="wwwroot\css\exam.css" />
+    <Content Remove="wwwroot\css\site.css" />
+    <Content Remove="wwwroot\data\TextFile1.txt" />
+    <Content Remove="wwwroot\js\CreateExam.js" />
+    <Content Remove="wwwroot\js\exam.js" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="wwwroot\css\CreateExam.css" />
+    <None Include="wwwroot\css\exam.css" />
+    <None Include="wwwroot\css\site.css" />
+    <None Include="wwwroot\data\TextFile1.txt" />
+    <None Include="wwwroot\js\CreateExam.js" />
+    <None Include="wwwroot\js\exam.js" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.14">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ATOZA.Application\ATOZA.Application.csproj" />
+    <ProjectReference Include="..\ATOZA.Infrastructure\ATOZA.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>

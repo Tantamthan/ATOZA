@@ -1,0 +1,74 @@
+@model ATOZA.Domain.Entities.Exam
+@{
+    var totalQuestionCount = Model.Questions?.Count() ?? 0;
+    var studentName = Context.Session.GetString("FullName") ?? "Thí sinh";
+    var examModeText = Model.ExamMode == ATOZA.Domain.Enums.ExamMode.Practice ? "Luyện tập" : "Thi thật";
+}
+
+<style>
+    .intro-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: #f8f9fa;
+        z-index: 9999;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .intro-card {
+        background: white;
+        padding: 40px;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        text-align: center;
+        max-width: 600px;
+        width: 90%;
+    }
+    /* ... (Các CSS khác của bạn) ... */
+</style>
+
+<div id="intro-screen" class="intro-overlay">
+    <div class="intro-card">
+        <div class="mb-4">
+            <i class="fa-solid fa-graduation-cap text-warning" style="font-size: 4rem;"></i>
+        </div>
+        <h2 class="fw-bold mb-2">@Model.Title</h2>
+        <p class="text-muted">@Model.Description</p>
+
+        <hr />
+
+        <div class="row text-start my-4">
+            <div class="col-6 mb-2">
+                <strong><i class="fa-solid fa-user me-2"></i>Thí sinh:</strong><br>
+                <span>@studentName</span>
+            </div>
+            <div class="col-6 mb-2">
+                <strong><i class="fa-solid fa-file-lines me-2"></i>Số câu:</strong><br>
+                <span>@totalQuestionCount câu</span>
+            </div>
+            <div class="col-6">
+                <strong><i class="fa-solid fa-clock me-2"></i>Thời gian:</strong><br>
+                <span>@(Model.DurationMinutes > 0 ? Model.DurationMinutes + " phút" : "Tự do")</span>
+            </div>
+            <div class="col-6">
+                <strong><i class="fa-solid fa-tag me-2"></i>Hình thức:</strong><br>
+                <span class="badge @(Model.ExamMode == ATOZA.Domain.Enums.ExamMode.Assessment ? "bg-danger" : "bg-success")">
+                    @examModeText
+                </span>
+            </div>
+        </div>
+
+        <div class="alert alert-warning text-start small">
+            <i class="fa-solid fa-triangle-exclamation me-1"></i>
+            Hệ thống sẽ tự động nộp bài khi hết giờ.
+        </div>
+
+        <button class="btn btn-primary btn-lg rounded-pill px-5" onclick="beginExam()">
+            <i class="fa-solid fa-play me-2"></i> BẮT ĐẦU NGAY
+        </button>
+    </div>
+</div>

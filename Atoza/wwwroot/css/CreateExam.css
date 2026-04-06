@@ -1,0 +1,145 @@
+﻿body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background: #f4f6f8;
+}
+
+/* Header */
+header {
+    background: #007bff;
+    color: white;
+    padding: 10px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.btn {
+    padding: 8px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.btn-success {
+    background: #28a745;
+    color: white;
+}
+
+.btn-warning {
+    background: #ffc107;
+    color: black;
+    margin-right: 10px;
+}
+
+/* Main Container */
+.container {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+}
+
+/* Cột Trái: Editor */
+.editor-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    border-right: 2px solid #ddd;
+    padding: 0px;
+    background: white;
+}
+
+textarea#rawContent {
+    flex-grow: 1;
+    width: 100%;
+    border: 1px solid #ccc;
+    padding: 10px;
+    padding-left: 30px;
+    font-family: monospace;
+    font-size: 14px;
+    resize: none;
+    outline: none;
+    overflow: auto;
+    box-sizing: border-box;
+}
+
+
+/* Cột Phải: Preview */
+.preview-col {
+    display: flex;
+    flex: 1;
+    padding: 20px;
+    padding-right: 10px;
+    overflow-y: auto;
+    background: #fff;
+    min-width: 0;
+    flex-direction: column;
+}
+
+/* Style cho Đề thi hiển thị */
+.question-block {
+    margin-bottom: 20px;
+    margin-right: 10px width: 100%;
+    border: 2px solid;
+    border-radius: 4px;
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+.q-text {
+    font-weight: bold;
+    box-sizing: border-box;
+    width: 100%;
+    color: #2c3e50;
+    margin-bottom: 10px;
+    white-space: pre-wrap;
+    /* Giữ lại các dấu xuống dòng \n nếu có, và tự xuống dòng khi hết chỗ */
+    word-wrap: break-word;
+    /* Bẻ gãy từ nếu từ quá dài (vd: link dài) */
+    overflow-wrap: break-word;
+    /* Chuẩn mới của word-wrap */
+}
+
+.q-text:hover {
+    cursor: pointer;
+}
+
+.q-text:active {
+    background-color: red;
+}
+
+.options-list {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+.option-item {
+    padding: 5px 10px;
+    margin: 2px 0;
+    border-radius: 4px;
+}
+
+.option-item:hover {
+    background-color: #cfe2ff;
+    cursor: pointer;
+}
+
+.option-item:active {
+    background-color: red;
+}
+
+.option-key {
+    font-weight: bold;
+    margin-right: 5px;
+}
+
+/* Highlight đáp án đúng */
+.is-correct {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}

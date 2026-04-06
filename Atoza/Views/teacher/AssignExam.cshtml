@@ -1,0 +1,56 @@
+@model ATOZA.Application.DTOs.Class.AssignExamDto
+
+@{
+    ViewBag.Title = "Giao bài tập";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow border-0">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0 fw-bold"><i class="fa-solid fa-bullhorn me-2"></i>Giao Bài Tập Cho Lớp</h4>
+                </div>
+                <div class="card-body p-4">
+                    @using (Html.BeginForm())
+                    {
+                        @Html.AntiForgeryToken()
+                        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Chọn Lớp học</label>
+                                @Html.DropDownList("ClassId", null, "--- Chọn lớp ---", new { @class = "form-select", required = "required" })
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Chọn Đề thi</label>
+                                @Html.DropDownList("ExamId", null, "--- Chọn đề thi ---", new { @class = "form-select", required = "required" })
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Mở đề từ lúc</label>
+                                <input type="datetime-local" name="AvailableFrom" class="form-control" required />
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Hạn nộp bài</label>
+                                <input type="datetime-local" name="DueDate" class="form-control" required />
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end mt-4">
+                            <a href="@Url.Action("Index")" class="btn btn-secondary me-2">Hủy</a>
+                            <button type="submit" class="btn btn-primary fw-bold px-4">
+                                <i class="fa-solid fa-paper-plane me-2"></i>Giao ngay
+                            </button>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
