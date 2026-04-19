@@ -17,3 +17,4 @@ E:\project Wed\Atoza\ATOZA.Infrastructure\obj\Debug\net10.0\refint\ATOZA.Infrast
 E:\project Wed\Atoza\ATOZA.Infrastructure\obj\Debug\net10.0\ATOZA.Infrastructure.pdb
 E:\project Wed\Atoza\ATOZA.Infrastructure\obj\Debug\net10.0\ATOZA.Infrastructure.genruntimeconfig.cache
 E:\project Wed\Atoza\ATOZA.Infrastructure\obj\Debug\net10.0\ref\ATOZA.Infrastructure.dll
+E:\project Wed\Atoza\ATOZA.Infrastructure\obj\Debug\net10.0\ATOZA.Infrastructure.sourcelink.json

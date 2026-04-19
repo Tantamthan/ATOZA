@@ -13,3 +13,4 @@ E:\project Wed\Atoza\ATOZA.Application\obj\Debug\net10.0\ATOZA.Application.dll
 E:\project Wed\Atoza\ATOZA.Application\obj\Debug\net10.0\refint\ATOZA.Application.dll
 E:\project Wed\Atoza\ATOZA.Application\obj\Debug\net10.0\ATOZA.Application.pdb
 E:\project Wed\Atoza\ATOZA.Application\obj\Debug\net10.0\ref\ATOZA.Application.dll
+E:\project Wed\Atoza\ATOZA.Application\obj\Debug\net10.0\ATOZA.Application.sourcelink.json

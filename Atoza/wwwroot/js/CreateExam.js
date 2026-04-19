@@ -98,8 +98,8 @@ function processText() {
     function parseLine(str, rawStart) {
         const firstChar = str[0];
 
-        // TRƯỜNG HỢP: Là câu hỏi "Câu ..." hoặc "Cau ..."
-        if ((firstChar === 'C' || firstChar === 'c') && (str.startsWith("Câu ") || str.startsWith("Cau "))) {
+        // TRƯỜNG HỢP: Là câu hỏi "Câu ...", "Cau ...", hoặc "Question ..."
+        if (/^(câu|cau|question)\s/i.test(str)) {
             flushQuestion(); // Gặp câu mới -> Lưu câu cũ lại
             questionIndex++; // Tăng chỉ số câu hỏi
 

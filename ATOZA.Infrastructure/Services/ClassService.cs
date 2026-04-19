@@ -1,4 +1,4 @@
-﻿using ATOZA.Application.Abstractions.Persistence;
+using ATOZA.Application.Abstractions.Persistence;
 using ATOZA.Application.Abstractions.Services;
 using ATOZA.Application.DTOs.Class;
 using ATOZA.Domain.Entities;
@@ -119,9 +119,9 @@ namespace ATOZA.Infrastructure.Services
         public Task<List<Class>> GetClassesByStudentAsync(int studentId)
         {
             return Task.FromResult(
-                _db.ClassStudents
-                   .Where(cs => cs.StudentId == studentId)
-                   .Select(cs => cs.Class)
+                _db.Classes
+                   .Include(c => c.Teacher)
+                   .Where(c => c.ClassStudents.Any(cs => cs.StudentId == studentId))
                    .ToList());
         }
 

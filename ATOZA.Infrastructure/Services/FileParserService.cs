@@ -1,4 +1,4 @@
-﻿using ATOZA.Application.Abstractions.Services;
+using ATOZA.Application.Abstractions.Services;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
 using System.Text;
@@ -23,7 +23,7 @@ namespace ATOZA.Infrastructure.Services
             ms.Position = 0;
 
             using var wordDoc = WordprocessingDocument.Open(ms, false);
-            var body = wordDoc.MainDocumentPart?.Document.Body;
+            var body = wordDoc.MainDocumentPart?.Document?.Body;
             if (body == null) return string.Empty;
 
             foreach (var paragraph in body.Elements<Paragraph>())

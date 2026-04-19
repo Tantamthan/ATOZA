@@ -33,12 +33,12 @@
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label class="form-label fw-bold">Mở đề từ lúc</label>
-                                <input type="datetime-local" name="AvailableFrom" class="form-control" required />
+                                <input type="text" name="AvailableFrom" class="form-control datetimepicker" required placeholder="Chọn thời gian" />
                             </div>
 
                             <div class="col-md-6 mb-3">
                                 <label class="form-label fw-bold">Hạn nộp bài</label>
-                                <input type="datetime-local" name="DueDate" class="form-control" required />
+                                <input type="text" name="DueDate" class="form-control datetimepicker" required placeholder="Chọn thời gian" />
                             </div>
                         </div>
 
@@ -54,3 +54,14 @@
         </div>
     </div>
 </div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        flatpickr(".datetimepicker", {
+            enableTime: true,
+            dateFormat: "Y-m-d H:i"
+        });
+    });
+</script>

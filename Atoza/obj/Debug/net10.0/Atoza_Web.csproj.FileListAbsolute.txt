@@ -220,7 +220,6 @@ E:\project Wed\Atoza\Atoza\obj\Debug\net10.0\staticwebassets.build.json.cache
 E:\project Wed\Atoza\Atoza\obj\Debug\net10.0\staticwebassets.development.json
 E:\project Wed\Atoza\Atoza\obj\Debug\net10.0\staticwebassets.build.endpoints.json
 E:\project Wed\Atoza\Atoza\obj\Debug\net10.0\swae.build.ex.cache
-E:\project Wed\Atoza\Atoza\obj\Debug\net10.0\staticwebassets.upToDateCheck.txt
 E:\project Wed\Atoza\Atoza\obj\Debug\net10.0\Atoza_Web.dll
 E:\project Wed\Atoza\Atoza\obj\Debug\net10.0\refint\Atoza_Web.dll
 E:\project Wed\Atoza\Atoza\obj\Debug\net10.0\Atoza_Web.pdb
@@ -234,3 +233,4 @@ E:\project Wed\Atoza\Atoza\bin\Debug\net10.0\Atoza_Web.pdb
 E:\project Wed\Atoza\Atoza\obj\Debug\net10.0\Atoza_Web.csproj.Up2Date
 E:\project Wed\Atoza\Atoza\obj\Debug\net10.0\Atoza_Web.genruntimeconfig.cache
 E:\project Wed\Atoza\Atoza\obj\Debug\net10.0\ref\Atoza_Web.dll
+E:\project Wed\Atoza\Atoza\obj\Debug\net10.0\Atoza_Web.sourcelink.json

@@ -91,7 +91,7 @@
 
                             @* Cột Thời Gian *@
                             <td class="text-center text-muted small">
-                                @(item.IsSubmitted ? item.FinishedAt.Value.ToString("dd/MM/yyyy HH:mm") : "--")
+                                @(item.IsSubmitted && item.FinishedAt.HasValue ? item.FinishedAt.Value.ToString("dd/MM/yyyy HH:mm") : "--")
                             </td>
                         </tr>
                     }

@@ -74,6 +74,7 @@ namespace Atoza_Web.Controllers
         public IActionResult Logout()
         {
             HttpContext.Session.Clear();
+            TempData.Clear();
             Response.Cookies.Delete("RememberMe_Username");
             Response.Cookies.Delete("RememberMe_Hash");
             return RedirectToAction("Index", "Home");
