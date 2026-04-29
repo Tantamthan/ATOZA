@@ -1,0 +1,62 @@
+@model List<ATOZA.Domain.Entities.Exam>
+@{
+    ViewData["Title"] = "De thi";
+}
+
+<section class="admin-shell">
+    <div class="admin-header">
+        <div>
+            <h1>De thi</h1>
+            <p>@Model.Count de thi</p>
+        </div>
+        <a class="btn btn-outline-primary" href="@Url.Action("Index", "Admin")"><i class="fa-solid fa-gauge me-2"></i>Dashboard</a>
+    </div>
+
+    @await Html.PartialAsync("_AdminFlash")
+
+    <div class="admin-table-wrap">
+        <table class="table align-middle admin-table">
+            <thead>
+                <tr>
+                    <th>Tieu de</th>
+                    <th>Nguoi tao</th>
+                    <th>Thoi luong</th>
+                    <th>Ngay tao</th>
+                    <th>Trang thai</th>
+                    <th class="text-end">Thao tac</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var exam in Model)
+                {
+                    <tr>
+                        <td class="fw-semibold">@exam.Title</td>
+                        <td>@(exam.Creator?.FullName ?? "N/A")</td>
+                        <td>@exam.DurationMinutes phut</td>
+                        <td>@exam.CreatedAt.ToString("dd/MM/yyyy")</td>
+                        <td>
+                            <span class="admin-status @(exam.IsPublic ? "is-active" : "is-inactive")">
+                                @(exam.IsPublic ? "Public" : "Private")
+                            </span>
+                        </td>
+                        <td class="text-end">
+                            <form asp-action="ToggleExamVisibility" method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="examId" value="@exam.Id" />
+                                <input type="hidden" name="isPublic" value="@(!exam.IsPublic)" />
+                                <button type="submit" class="btn btn-sm btn-outline-primary">
+                                    @(exam.IsPublic ? "Go cong khai" : "Cong khai")
+                                </button>
+                            </form>
+                            <form asp-action="DeleteExam" method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="examId" value="@exam.Id" />
+                                <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Xoa de thi nay?')">Xoa</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</section>

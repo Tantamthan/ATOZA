@@ -34,6 +34,7 @@ namespace ATOZA.Infrastructure
             services.AddScoped<IClassService, ClassService>();
             services.AddScoped<ISubmissionService, SubmissionService>();
             services.AddScoped<IFileParserService, FileParserService>();
+            services.AddScoped<IAdminService, AdminService>();
 
             return services;
         }

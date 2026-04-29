@@ -38,6 +38,26 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcYWNjb3VudFxSZWdpc3Rlci5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
+[E:/project Wed/Atoza/Atoza/Views/admin/ClassList.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcYWRtaW5cQ2xhc3NMaXN0LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[E:/project Wed/Atoza/Atoza/Views/admin/ExamList.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcYWRtaW5cRXhhbUxpc3QuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[E:/project Wed/Atoza/Atoza/Views/admin/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcYWRtaW5cSW5kZXguY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[E:/project Wed/Atoza/Atoza/Views/admin/UserList.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcYWRtaW5cVXNlckxpc3QuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[E:/project Wed/Atoza/Atoza/Views/admin/_AdminFlash.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcYWRtaW5cX0FkbWluRmxhc2guY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
 [E:/project Wed/Atoza/Atoza/Views/exam/CreateExam.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcZXhhbVxDcmVhdGVFeGFtLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 

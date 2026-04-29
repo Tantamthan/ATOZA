@@ -64,13 +64,17 @@ ATOZA.Domain/
 │   ├── Class.cs               # Lớp học
 │   ├── ClassStudent.cs        # Học sinh tham gia lớp (bảng junction)
 │   ├── ClassAssignment.cs     # Giáo viên giao đề cho lớp
-│   ├── Exam.cs                # Đề thi
+│   ├── Exam.cs                # Đề thi (có trường IsPublic)
 │   ├── Question.cs            # Câu hỏi trắc nghiệm
 │   ├── Submission.cs          # Bài nộp của học sinh
 │   └── SubmissionDetail.cs    # Chi tiết từng đáp án trong bài nộp
-└── Enums/
-    ├── UserRole.cs             # Student = 0, Teacher = 1
-    └── ExamMode.cs             # Assessment = 0, Practice = 1
+├── Enums/
+│   ├── UserRole.cs             # Student = 0, Teacher = 1
+│   └── ExamMode.cs             # Assessment = 0, Practice = 1
+├── Exceptions/
+│   └── DomainExceptions.cs     # NotFoundException, UnauthorizedException,
+│                                # DuplicateEntityException, BusinessRuleException
+└── ValueObjects/               # (Dự phòng – hiện trống)
 ```
 
 **BaseEntity:**
@@ -102,10 +106,11 @@ ATOZA.Application/
 │       └── IFileParserService.cs
 ├── DTOs/
 │   ├── AuthDtos.cs        # LoginDto, RegisterDto, UserProfileDto
-│   ├── ClassDtos.cs       # CreateClassDto, AssignExamDto
-│   ├── ExamDtos.cs        # CreateExamDto, QuestionDto
+│   ├── ClassDtos.cs       # CreateClassDto, AssignExamDto, AssignExamResultDto
+│   ├── ExamDtos.cs        # CreateExamDto, UpdateExamDto, QuestionDto, StudentExamAccessResultDto
 │   └── SubmissionDtos.cs  # SubmitExamDto, StudentAnswerDto, SubmitResultDto, StudentReportDto
-└── Features/              # (Thư mục dự phòng – hiện trống, dành cho CQRS sau này)
+├── Features/              # (Thư mục dự phòng – có subfolder Auth, Classes, Exams, Submissions)
+└── DependencyInjection.cs # Extension method: AddApplication() (hiện trống, dự phòng cho service thuần Application)
 ```
 
 **Danh sách Interface chính:**
@@ -113,8 +118,8 @@ ATOZA.Application/
 | Interface | Phương thức chính |
 |---|---|
 | `IAuthService` | `LoginAsync`, `RegisterAsync`, `IsEmailOrUsernameTakenAsync` |
-| `IClassService` | `GetClassesByTeacherAsync`, `CreateClassAsync`, `JoinClassAsync`, `AssignExamAsync`, `ExportStudentsCsvAsync` |
-| `IExamService` | `CreateExamAsync`, `GetExamWithQuestionsAsync`, `HasSubmittedAsync`, `GetExamsByCreatorAsync` |
+| `IClassService` | `GetClassesByTeacherAsync`, `CreateClassAsync`, `JoinClassAsync`, `AssignExamAsync`, `ExportStudentsCsvAsync`, `GetAssignmentsForStudentAsync` |
+| `IExamService` | `CreateExamAsync`, `UpdateExamAsync`, `GetExamWithQuestionsAsync`, `GetExamForStudentAsync`, `GetExamForEditAsync`, `HasSubmittedAsync`, `GetExamsByCreatorAsync`, `GetAssignableExamsForTeacherAsync`, `SetExamVisibilityAsync`, `ExportExamToWordAsync` |
 | `ISubmissionService` | `SubmitExamAsync`, `GetStudentSubmissionsAsync`, `GetSubmissionDetailAsync`, `GetSubmissionReportAsync` |
 | `IFileParserService` | `ExtractFromWord`, `ExtractFromPdf`, `FormatExamText` |
 
@@ -130,12 +135,12 @@ ATOZA.Infrastructure/
 ├── Persistence/
 │   └── ATOZADbContext.cs       # EF Core DbContext – cấu hình mapping và quan hệ
 ├── Services/
-│   ├── AuthService.cs          # Xử lý đăng nhập, đăng ký (MD5 hash)
+│   ├── AuthService.cs          # Đăng nhập, đăng ký (PBKDF2-SHA256 + tương thích legacy MD5)
 │   ├── ClassService.cs         # Quản lý lớp học, tham gia lớp, giao bài
-│   ├── ExamService.cs          # Tạo đề thi, lấy đề thi kèm câu hỏi
-│   ├── SubmissionService.cs    # Nộp bài, chấm điểm, báo cáo
+│   ├── ExamService.cs          # Tạo/sửa đề thi, xuất Word, quản lý quyền truy cập
+│   ├── SubmissionService.cs    # Nộp bài (kiểm tra thời hạn), chấm điểm, báo cáo
 │   └── FileParserService.cs    # Parse file Word/PDF thành text đề thi
-├── Migrations/                 # EF Core migration files
+├── Migrations/                 # EF Core migration files (InitialCreate, AddExamVisibility)
 └── DependencyInjection.cs      # Extension method: AddInfrastructure()
 ```
 
@@ -167,7 +172,8 @@ Atoza/
 │   ├── student/                # Index, JoinClass, ClassDetail,
 │   │                           # MyAssignments, ReviewExam
 │   └── exam/                   # CreateExam, Index (làm bài), SaveExam,
-│                               # QuestionCard, Submit, Sidebar, _IntroScreen
+│                               # QuestionCard, Submit, Sidebar, _IntroScreen,
+│                               # LayoutExam
 ├── wwwroot/
 │   ├── css/                    # Stylesheet
 │   ├── js/                     # CreateExam.js và các script khác
@@ -185,17 +191,19 @@ Atoza/
 | Action | Method | Mô tả |
 |---|---|---|
 | `GET /Account/Register` | GET | Hiển thị form đăng ký |
-| `POST /Account/Register` | POST | Tạo tài khoản mới; hash password bằng MD5 |
-| `GET /Account/Login` | GET | Hiển thị form đăng nhập; tự redirect nếu đã có Session |
-| `POST /Account/Login` | POST | Xác thực; lưu `IdUser`, `FullName`, `Role` vào Session; hỗ trợ "Ghi nhớ đăng nhập" 30 ngày bằng Cookie |
-| `GET /Account/Logout` | GET | Xóa Session + Cookie, redirect về trang chủ |
+| `POST /Account/Register` | POST | Tạo tài khoản mới; hash password bằng **PBKDF2-SHA256** |
+| `GET /Account/Login` | GET | Hiển thị form đăng nhập; tự redirect nếu đã xác thực (Claims) |
+| `POST /Account/Login` | POST | Xác thực; tạo **ClaimsIdentity** (NameIdentifier, Name, GivenName, Email, Role); sign-in qua Cookie Authentication; lưu Session phụ trợ |
+| `GET /Account/Logout` | GET | SignOut Cookie Authentication + xóa Session + xóa Cookie cũ, redirect về trang chủ |
 
 **Cơ chế xác thực:**
-- Session-based authentication (không dùng ASP.NET Core Identity).
-- Password được hash bằng **MD5** trước khi lưu vào DB.
-- "Ghi nhớ đăng nhập": lưu `RememberMe_Username` và `RememberMe_Hash` vào Cookie HttpOnly, hết hạn sau **30 ngày**.
-
-> ⚠️ **Cần bổ sung:** Logic tự động đăng nhập lại từ Cookie "RememberMe" (hiện `AccountController.Login GET` chỉ check Session, chưa đọc Cookie để tự login).
+- **Cookie Authentication** (ASP.NET Core) với Claims-based identity.
+- Password được hash bằng **PBKDF2-SHA256** (100,000 iterations, salt 16 bytes, key 32 bytes).
+- Hỗ trợ **tự động nâng cấp** từ legacy MD5 hash: nếu phát hiện hash cũ dạng MD5 (32 hex chars), xác thực bằng MD5, rồi re-hash sang PBKDF2 và cập nhật DB.
+- Format lưu hash: `PBKDF2$100000$<base64-salt>$<base64-hash>`.
+- "Ghi nhớ đăng nhập" (`RememberMe`): `IsPersistent = true` với `ExpiresUtc` = 30 ngày.
+- Sử dụng `[Authorize]` attribute trên Controller/Action thay vì kiểm tra Session thủ công.
+- Session phụ trợ lưu `IdUser`, `FullName`, `Role` (fallback khi Claims chưa sẵn sàng).
 
 ---
 
@@ -212,8 +220,11 @@ Atoza/
 | Danh sách bài giao | `GET /Teacher/ClassAssignmentsList/{classId}` | Xem các đề đã giao cho lớp |
 | Báo cáo kết quả | `GET /Teacher/ExamSubmissionReport` | Xem điểm từng học sinh theo lớp/đề |
 | Upload file | `POST /Teacher/ProcessExamFile` | Import đề từ `.docx` hoặc `.pdf` |
+| Chuyển chế độ đề | `POST /Teacher/SetExamVisibility` | Đổi đề thi giữa công khai / riêng tư |
+| Xuất đề Word | `GET /Teacher/ExportExamWord/{id}` | Tải file `.docx` đề thi (đáp án đúng in đỏ) |
+| Soạn đề mới | `GET /Teacher/TeacherCreateExam` | Giao diện soạn đề thi dành riêng cho Teacher |
 
-**Guard:** Tất cả action đều kiểm tra `Session["Role"] == "Teacher"`, nếu không sẽ redirect về trang Login.
+**Guard:** Sử dụng `[Authorize(Roles = "Teacher")]` attribute trên toàn bộ Controller. Mỗi action bổ sung kiểm tra `IsTeacher()` (fallback) và redirect về Login nếu không hợp lệ.
 
 ---
 
@@ -233,16 +244,26 @@ Atoza/
 
 | Action | Route | Mô tả |
 |---|---|---|
-| Soạn đề | `GET /Exam/CreateExam` | Giao diện soạn đề thi (nhận nội dung từ TempData sau khi parse file) |
-| Lưu đề | `POST /Exam/SaveExamApi` | JSON API nhận DTO, tạo Exam + Questions vào DB |
-| Làm bài | `GET /Exam/Index/{id}` | Hiển thị đề thi; kiểm tra học sinh chưa nộp |
+| Soạn đề | `GET /Exam/CreateExam` | Giao diện soạn đề thi (nhận nội dung từ Session sau khi parse file) |
+| Lưu đề | `POST /Exam/SaveExamApi` | JSON API nhận `CreateExamDto`, tạo Exam + Questions vào DB |
+| Sửa đề | `GET /Exam/EditExam/{id}` | Load đề thi vào giao diện CreateExam (ở chế độ edit) |
+| Cập nhật đề | `POST /Exam/UpdateExamApi` | JSON API nhận `UpdateExamDto`, xóa câu hỏi cũ + thêm mới |
+| Làm bài | `GET /Exam/Index/{id}` | Hiển thị đề thi; kiểm tra quyền truy cập, thời hạn và trạng thái nộp bài |
 | Nộp bài | `POST /Exam/SubmitExam` | JSON API nhận đáp án, chấm điểm, lưu Submission |
+
+**Guard:** `[Authorize]` trên Controller. `CreateExam`, `SaveExamApi`, `EditExam`, `UpdateExamApi` yêu cầu `Roles = "Teacher"`. `Index`, `SubmitExam` yêu cầu `Roles = "Student"`.
 
 **Logic chấm điểm:**
 ```
 Score = Round((SốCâuĐúng / TổngSốCâu) × 10, 2)
 ```
 Chống nộp lại: kiểm tra bảng `Submissions` trước khi lưu.
+
+**Logic kiểm tra quyền làm bài (`GetExamForStudentAsync`):**
+- Kiểm tra học sinh thuộc lớp được giao đề thi
+- Kiểm tra `AvailableFrom <= now` (chưa đến giờ mở → từ chối)
+- Kiểm tra `DueDate >= now` (quá hạn → từ chối)
+- Kiểm tra chưa nộp bài (`HasSubmittedAsync`)
 
 ---
 
@@ -257,7 +278,7 @@ ExtractFromWord() / ExtractFromPdf()
       ↓  (text thô)
 FormatExamText()
       ↓  (text chuẩn hóa "Câu N:")
-TempData["RawContent"]
+Session["UploadedRawContent"]
       ↓
 Redirect → /Exam/CreateExam  (hiển thị để giáo viên review)
       ↓
@@ -272,6 +293,7 @@ Redirect → /Exam/CreateExam  (hiển thị để giáo viên review)
 
 ```
 Users ──────< Classes (TeacherId)
+Users ──────< Exams (CreatorId)
 Users ──────< Submissions (StudentId)
 Users ──────< ClassStudents (StudentId)
 Classes ────< ClassStudents (ClassId)
@@ -294,7 +316,7 @@ Questions ──< SubmissionDetails (QuestionId)
 | `FullName` | `nvarchar(max)` | NOT NULL | Họ và tên |
 | `Email` | `nvarchar(200)` | NOT NULL, UNIQUE | Email đăng nhập |
 | `UserName` | `nvarchar(100)` | NOT NULL, UNIQUE | Tên đăng nhập |
-| `PasswordHash` | `nvarchar(max)` | NOT NULL | MD5 hash của mật khẩu |
+| `PasswordHash` | `nvarchar(max)` | NOT NULL | PBKDF2-SHA256 hash (hoặc legacy MD5 32 hex) |
 | `Role` | `int` | NOT NULL | `0` = Student, `1` = Teacher |
 
 ---
@@ -334,6 +356,7 @@ Questions ──< SubmissionDetails (QuestionId)
 | `CreatorId` | `int` | FK → Users.Id | Giáo viên tạo đề |
 | `DurationMinutes` | `int` | NOT NULL | Thời lượng thi (phút) |
 | `ExamMode` | `int` | NOT NULL | `0` = Assessment, `1` = Practice |
+| `IsPublic` | `bit` | NOT NULL, DEFAULT `false` | Đề thi công khai (giáo viên khác có thể giao) |
 | `StartTime` | `datetime` | NOT NULL | Thời gian bắt đầu |
 | `EndTime` | `datetime` | NOT NULL | Thời gian kết thúc |
 
@@ -408,15 +431,20 @@ Questions ──< SubmissionDetails (QuestionId)
       ↓
 AuthService.RegisterAsync()
   - Kiểm tra Email/UserName đã tồn tại?
-  - Hash password bằng MD5
+  - Hash password bằng PBKDF2-SHA256
   - Lưu User vào DB
       ↓
 Redirect → /Account/Login
       ↓
 AuthService.LoginAsync()
-  - Hash password → so sánh với DB
-  - Lưu Session: IdUser, FullName, Role
-  - (Tuỳ chọn) Ghi Cookie RememberMe 30 ngày
+  - Hash password → so sánh với DB (PBKDF2 hoặc legacy MD5)
+  - Nếu MD5 legacy → re-hash sang PBKDF2, cập nhật DB
+  - Trả về UserProfileDto
+      ↓
+AccountController.Login POST
+  - Tạo ClaimsIdentity (NameIdentifier, Name, GivenName, Email, Role)
+  - Gọi HttpContext.SignInAsync() với Cookie Authentication
+  - Lưu Session phụ trợ: IdUser, FullName, Role
       ↓
 Redirect theo Role:
   - Teacher → /Teacher/Index
@@ -434,7 +462,7 @@ Redirect theo Role:
       ↓
 FileParserService.ExtractFromWord/Pdf() → text thô
 FileParserService.FormatExamText()      → text chuẩn hóa
-TempData["RawContent"] → Redirect → /Exam/CreateExam
+Session["UploadedRawContent"] → Redirect → /Exam/CreateExam
       ↓
 [Giáo viên xem/chỉnh sửa nội dung trên giao diện]
       ↓
@@ -484,13 +512,19 @@ ClassService.JoinClassAsync()
   - Xem danh sách bài tập được giao
       ↓
 /Exam/Index/{examId}
-  - Kiểm tra học sinh chưa nộp (HasSubmittedAsync)
+  - ExamService.GetExamForStudentAsync():
+    ✔ Kiểm tra học sinh thuộc lớp được giao đề
+    ✔ Kiểm tra AvailableFrom <= now
+    ✔ Kiểm tra DueDate >= now
+    ✔ Kiểm tra chưa nộp (HasSubmittedAsync)
   - Hiển thị đề thi + bộ đếm giờ
       ↓
 [Học sinh làm bài] → POST /Exam/SubmitExam (JSON)
       ↓
 SubmissionService.SubmitExamAsync()
+  - Kiểm tra lại thời hạn (GetOpenAssignmentForStudentAsync)
   - Chống nộp lại
+  - Validate câu trả lời hợp lệ (questionId phải thuộc đề thi)
   - Chấm từng câu → tính điểm
   - Lưu Submission + SubmissionDetails vào DB
   - Trả về kết quả (điểm, redirect URL)
@@ -548,12 +582,27 @@ services.AddScoped<IFileParserService, FileParserService>();
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
-app.UseSession();        // Bắt buộc trước UseAuthorization
-app.UseAuthorization();
-app.MapControllerRoute(  // Route mặc định: {controller=Home}/{action=Index}/{id?}
+app.UseSession();
+app.UseAuthentication();   // Cookie Authentication
+app.UseAuthorization();    // [Authorize] attribute
+app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+    pattern: "{controller=Home}/{action=Index}/{id?}")
+    .WithStaticAssets();
 ```
+
+### Cookie Authentication Configuration
+
+| Tham số | Giá trị |
+|---|---|
+| `LoginPath` | `/Account/Login` |
+| `AccessDeniedPath` | `/Account/Login` |
+| `ExpireTimeSpan` | 30 phút (sliding) |
+| `SlidingExpiration` | `true` |
+| `Cookie.HttpOnly` | `true` |
+| `Cookie.IsEssential` | `true` |
+| `Cookie.SameSite` | `Lax` |
+| `Cookie.SecurePolicy` | `SameAsRequest` (dev) / `Always` (prod) |
 
 ### Session Configuration
 
@@ -562,32 +611,45 @@ app.MapControllerRoute(  // Route mặc định: {controller=Home}/{action=Index
 | `IdleTimeout` | 30 phút |
 | `Cookie.HttpOnly` | `true` |
 | `Cookie.IsEssential` | `true` |
+| `Cookie.SameSite` | `Lax` |
+| `Cookie.SecurePolicy` | `SameAsRequest` (dev) / `Always` (prod) |
+
+### Antiforgery Configuration
+
+| Tham số | Giá trị |
+|---|---|
+| `HeaderName` | `RequestVerificationToken` |
+| `Cookie.HttpOnly` | `true` |
+| `Cookie.SameSite` | `Lax` |
 
 ---
 
 ## 7. Ghi chú & Việc cần làm tiếp theo
 
-### ⚠️ Vấn đề bảo mật cần xử lý
+### ✅ Đã hoàn thành (so với phiên bản trước)
 
-- **MD5 Password Hashing**: MD5 đã bị coi là **không an toàn** cho mật khẩu. Cần chuyển sang `BCrypt`, `PBKDF2` hoặc `Argon2`.
-- **Cookie RememberMe**: Hiện lưu `PasswordHash` vào Cookie – không an toàn. Cần thay bằng token ngẫu nhiên (ví dụ: Guid) tra cứu từ DB.
-- **Authorization**: Không dùng `[Authorize]` attribute; chỉ kiểm tra Session thủ công trong từng action. Nên bổ sung middleware hoặc attribute filter.
-- **Không có HTTPS enforcement** ở tầng application (chỉ có HSTS ở production).
+- **Password Hashing**: Đã chuyển từ MD5 sang **PBKDF2-SHA256** với auto-migration legacy hash.
+- **Authorization**: Đã dùng `[Authorize]` attribute với role-based authorization thay vì kiểm tra Session thủ công.
+- **Authentication**: Đã dùng **Cookie Authentication** với Claims-based identity.
+- **Thời hạn thi**: Đã kiểm tra `AvailableFrom` / `DueDate` trước khi cho học sinh vào thi (cả khi làm bài và khi nộp bài).
+- **Exam Editing**: Đã triển khai chỉnh sửa đề thi (EditExam, UpdateExamApi).
+- **Exam Visibility**: Đã triển khai đề thi công khai / riêng tư (IsPublic, SetExamVisibility).
+- **Export Word**: Đã triển khai xuất đề thi ra file `.docx`.
 
 ### ⚠️ Cần bổ sung thông tin
 
-- **Seed Data**: Chưa có dữ liệu khởi tạo mặc định (admin, demo account...).
+- **Seed Data**: Chưa có dữ liệu khởi tạo mặc định (tài khoản Teacher/Student demo để test nhanh).
 - **ExamMode (Practice)**: Enum `Practice = 1` đã định nghĩa nhưng logic "Xem đáp án sau mỗi câu" chưa được triển khai trong flow làm bài.
-- **Thời hạn AvailableFrom/DueDate của ClassAssignment**: Entity có trường `AvailableFrom`/`DueDate` nhưng `ExamController.Index` chưa kiểm tra học sinh có trong thời hạn thi không.
-- **Phân quyền upload file**: `ProcessExamFile` chỉ kiểm tra `IsTeacher()` nhưng không ràng buộc size/type file ở tầng controller.
+- **Phân quyền upload file**: `ProcessExamFile` chưa ràng buộc size/type file ở tầng controller.
+- **Domain Exceptions**: Các exception đã định nghĩa (`NotFoundException`, `BusinessRuleException`...) nhưng chưa được sử dụng đồng bộ trong các Service (hiện dùng return value).
 
 ### 📋 Việc cần làm tiếp theo
 
-- [ ] Thay MD5 bằng thuật toán hash an toàn hơn (BCrypt)
-- [ ] Triển khai logic Cookie RememberMe đúng chuẩn (lookup token)
-- [ ] Kiểm tra `AvailableFrom` / `DueDate` trước khi cho học sinh vào thi
 - [ ] Triển khai `ExamMode.Practice` (xem đáp án sau từng câu)
-- [ ] Thêm seed data hoặc script tạo tài khoản admin ban đầu
-- [ ] Cân nhắc bổ sung ASP.NET Core Identity hoặc JWT cho xác thực
-- [ ] Viết unit test cho các Service (AuthService, SubmissionService)
+- [ ] (Tùy chọn) Thêm seed data tạo tài khoản Teacher/Student mẫu để tiện demo/test
 - [ ] Thêm validation file size và MIME type trong `ProcessExamFile`
+- [ ] Sử dụng Domain Exceptions thống nhất thay vì return tuple
+- [ ] Viết unit test cho các Service (AuthService, SubmissionService, ExamService)
+- [ ] Cân nhắc bổ sung global exception handler middleware
+- [ ] Chuẩn hóa timezone (hiện `ExamService` dùng `DateTime.Now`, `SubmissionService` dùng `DateTime.Now` cho kiểm tra thời hạn nhưng `DateTime.UtcNow` khi lưu)
+- [ ] Xây dựng hệ thống Admin (`Admin = 2` trong `UserRole`): quản lý tài khoản Teacher/Student (xem, khóa, xóa), dashboard thống kê tổng quan, duyệt đề thi công khai, quản lý dữ liệu hệ thống

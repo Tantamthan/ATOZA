@@ -1,18 +1,31 @@
+@model IEnumerable<ATOZA.Domain.Entities.Exam>
+
 @{
-    ViewBag.Title = "Dashboard Giáo Viên";
+    ViewBag.Title = "Dashboard Giao Vien";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <div class="container py-5">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fw-bold text-dark">Tổng quan</h2>
-        <a href="@Url.Action("CreateClass", "Teacher")" class="btn btn-warning text-white fw-bold rounded-pill px-4">
-            <i class="fa-solid fa-plus me-2"></i>Tạo lớp ngay
-        </a>
-        <a href="@Url.Action("AssignExam", "Teacher")" class="btn btn-warning text-white fw-bold rounded-pill px-4">
-            <i class="fa-solid fa-plus me-2"></i>Tạo bài tập ngay
-        </a>
+        <h2 class="fw-bold text-dark">Tong quan</h2>
+        <div class="d-flex gap-2">
+            <a href="@Url.Action("CreateClass", "Teacher")" class="btn btn-warning text-white fw-bold rounded-pill px-4">
+                <i class="fa-solid fa-plus me-2"></i>Tao lop
+            </a>
+            <a href="@Url.Action("AssignExam", "Teacher")" class="btn btn-primary text-white fw-bold rounded-pill px-4">
+                <i class="fa-solid fa-paper-plane me-2"></i>Giao bai
+            </a>
+        </div>
     </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">@TempData["Success"]</div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Error"]</div>
+    }
 
     <div class="row g-4 mb-5">
         <div class="col-md-4">
@@ -21,7 +34,7 @@
                     <div class="fs-1 text-warning me-3"><i class="fa-solid fa-chalkboard-user"></i></div>
                     <div>
                         <h3 class="fw-bold mb-0">@ViewBag.ClassCount</h3>
-                        <p class="text-muted mb-0">Lớp học đang quản lý</p>
+                        <p class="text-muted mb-0">Lop hoc dang quan ly</p>
                     </div>
                 </div>
             </div>
@@ -31,21 +44,21 @@
                 <div class="card-body p-4 d-flex align-items-center">
                     <div class="fs-1 text-primary me-3"><i class="fa-solid fa-file-signature"></i></div>
                     <div>
-                        <h3 class="fw-bold mb-0">@ViewBag.SubmissionCount</h3>
-                        <p class="text-muted mb-0">Bài tập đã chấm</p>
+                        <h3 class="fw-bold mb-0">@(Model?.Count() ?? 0)</h3>
+                        <p class="text-muted mb-0">De thi cua toi</p>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <h4 class="fw-bold mb-3">Chức năng quản lý</h4>
-    <div class="row g-3">
+    <h4 class="fw-bold mb-3">Chuc nang quan ly</h4>
+    <div class="row g-3 mb-5">
         <div class="col-md-3">
             <a href="@Url.Action("ClassList", "Teacher")" class="card text-decoration-none shadow-sm hover-card border-0">
                 <div class="card-body text-center p-4">
                     <i class="fa-solid fa-users-rectangle fs-2 text-warning mb-3"></i>
-                    <h5 class="text-dark fw-bold">Danh sách lớp</h5>
+                    <h5 class="text-dark fw-bold">Danh sach lop</h5>
                 </div>
             </a>
         </div>
@@ -53,10 +66,73 @@
             <a href="@Url.Action("CreateExam", "Exam")" class="card text-decoration-none shadow-sm hover-card border-0">
                 <div class="card-body text-center p-4">
                     <i class="fa-solid fa-file-circle-plus fs-2 text-warning mb-3"></i>
-                    <!-- somewhere in the teacher dashboard -->
-                    <h5 class="text-dark fw-bold">Tạo Đề Thi</h5>
+                    <h5 class="text-dark fw-bold">Tao de thi</h5>
                 </div>
             </a>
         </div>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="fw-bold mb-0">De thi cua toi</h4>
+        <a href="@Url.Action("CreateExam", "Exam")" class="btn btn-outline-primary">
+            <i class="fa-solid fa-file-circle-plus me-2"></i>Tao de moi
+        </a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover align-middle shadow-sm">
+            <thead class="table-light">
+                <tr>
+                    <th>Ten de</th>
+                    <th>Thoi gian</th>
+                    <th>Che do chia se</th>
+                    <th class="text-end">Thao tac</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    foreach (var exam in Model)
+                    {
+                        <tr>
+                            <td class="fw-semibold">@exam.Title</td>
+                            <td>@exam.DurationMinutes phut</td>
+                            <td>
+                                @if (exam.IsPublic)
+                                {
+                                    <span class="badge bg-success">Cong khai</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Rieng tu</span>
+                                }
+                            </td>
+                            <td class="text-end">
+                                <a href="@Url.Action("EditExam", "Exam", new { id = exam.Id })" class="btn btn-sm btn-outline-warning me-1">
+                                    <i class="fa-solid fa-pen-to-square me-1"></i>Sua de
+                                </a>
+                                <a href="@Url.Action("ExportExamWord", "Teacher", new { id = exam.Id })" class="btn btn-sm btn-outline-info me-1">
+                                    <i class="fa-solid fa-file-word me-1"></i>Xuat Word
+                                </a>
+                                <form action="@Url.Action("SetExamVisibility", "Teacher")" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="examId" value="@exam.Id" />
+                                    <input type="hidden" name="isPublic" value="@(exam.IsPublic ? "false" : "true")" />
+                                    <button type="submit" class="btn btn-sm @(exam.IsPublic ? "btn-outline-secondary" : "btn-outline-success")">
+                                        @(exam.IsPublic ? "Chuyen rieng tu" : "Mo cong khai")
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="4" class="text-center text-muted py-4">Ban chua co de thi nao.</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
     </div>
 </div>

@@ -10,6 +10,7 @@ namespace ATOZA.Domain.Entities
         public int CreatorId { get; set; }
         public int DurationMinutes { get; set; }
         public ExamMode ExamMode { get; set; } = ExamMode.Assessment;
+        public bool IsPublic { get; set; }
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }
 

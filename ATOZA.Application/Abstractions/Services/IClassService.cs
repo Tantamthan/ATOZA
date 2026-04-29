@@ -9,7 +9,7 @@ namespace ATOZA.Application.Abstractions.Services
         Task<List<Class>> GetClassesByTeacherAsync(int teacherId);
         Task<Class> CreateClassAsync(CreateClassDto dto, int teacherId);
         Task<Class?> GetClassDetailAsync(int classId, int teacherId);
-        Task<bool> AssignExamAsync(AssignExamDto dto, out string? errorMessage);
+        Task<AssignExamResultDto> AssignExamAsync(AssignExamDto dto, int teacherId);
         Task<List<ClassAssignment>> GetClassAssignmentsAsync(int classId, int teacherId);
         Task<byte[]?> ExportStudentsCsvAsync(int classId, int teacherId);
 

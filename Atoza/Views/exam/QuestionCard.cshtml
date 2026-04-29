@@ -30,14 +30,15 @@
             {
                 var optionKey = option.Key;
                 var optionText = option.Value;
+                var optionId = $"opt_{Model.Id}_{optionKey}";
                 <input type="radio"
                        class="option-input"
                        name="q_@Model.Id"
-                       id="opt_@Model.Id _@optionKey"
+                       id="@optionId"
                        value="@optionKey"
-                       data-ordernumber="@Model.OrderNumber" onchange="markAnswered(@Model.OrderNumber)">
+                       data-ordernumber="@Model.OrderNumber" onchange="handleAnswerChange(@Model.Id, @Model.OrderNumber)">
 
-                <label class="option-label" for="opt_@Model.Id _@optionKey">
+                <label class="option-label" for="@optionId" data-option-key="@optionKey">
                     <span class="option-key">@optionKey</span>
                     <span class="option-text">@optionText</span>
                 </label>
@@ -46,6 +47,6 @@
       
     }
 
+    <div class="practice-feedback" id="practice-feedback-@Model.Id" aria-live="polite"></div>
 
 </div>
-

@@ -1,344 +1,377 @@
-// 1. Biến lưu trữ dữ liệu JSON cuối cùng
 let finalExamData = [];
 
-// 2. Hàm giả lập Upload (Giả lập nội dung file mẫu)
+const textArea = document.getElementById("rawContent");
+const previewDiv = document.getElementById("previewContent");
+const questionCountEl = document.getElementById("questionCount");
+const answeredCountEl = document.getElementById("answeredCount");
+const issueCountEl = document.getElementById("issueCount");
+const parseStatusEl = document.getElementById("parseStatus");
+
 async function simulateUpload() {
-    const filePath = '/data/TextFile1.txt'
-    let sampleText = "";
+    const filePath = "/data/TextFile1.txt";
+
     try {
         const response = await fetch(filePath);
-        sampleText = await response.text();
-    } catch (e) {
-
+        const sampleText = await response.text();
+        textArea.value = sampleText.trim();
+        processText();
+    } catch (error) {
+        updateParseStatus("Khong the tai file mau luc nay.", "warning");
     }
-
-    document.getElementById('rawContent').value = sampleText.trim();
-    processText(); // Kích hoạt xử lý ngay
 }
 
-// 3. Sự kiện lắng nghe khi người dùng gõ phím (Real-time Parsing)
-const textArea = document.getElementById('rawContent');
-const previewDiv = document.getElementById('previewContent');
+if (textArea) {
+    let timeout = null;
+    textArea.addEventListener("input", () => {
+        clearTimeout(timeout);
+        timeout = setTimeout(processText, 220);
+    });
+}
 
-// Sử dụng Debounce để không xử lý quá nhiều lần khi đang gõ nhanh
-let timeout = null;
-textArea.addEventListener('keyup', function () {
-    clearTimeout(timeout);
-    timeout = setTimeout(processText, 300); // Chờ 300ms sau khi ngừng gõ mới xử lý
-});
-
-// 4. CORE LOGIC: Xử lý văn bản thô thành JSON và Render HTML
 function processText() {
-    console.time("UltraFastParse");
+    if (!textArea || !previewDiv) {
+        return;
+    }
 
-    const text = textArea.value;
-    finalExamData = []; // Reset dữ liệu gốc
+    const lines = textArea.value
+        .replace(/\r\n/g, "\n")
+        .replace(/\r/g, "\n")
+        .split("\n");
 
-    let htmlBuffer = "";
-    let currentQ = null;
-    let questionIndex = 0; // Thêm biến đếm câu hỏi
+    finalExamData = [];
+    let currentQuestion = null;
+    let questionIndex = 0;
 
-    // Helper: Hàm lưu câu hỏi cũ vào mảng và tạo HTML
     const flushQuestion = () => {
-        if (!currentQ) return;
-
-        const qId = `q-${questionIndex}`;
-        currentQ.id = qId; // Gán ID cho câu hỏi (Để phục vụ cho tính năng tương tác)
-        finalExamData.push(currentQ);
-
-        // 2. Tạo HTML
-        let optionsHtml = "";
-        const len = currentQ.options.length;
-        for (let i = 0; i < len; i++) {
-            const opt = currentQ.options[i];
-            const cls = opt.isCorrect ? 'option-item is-correct' : 'option-item';
-            // Thêm data-q-index, data-opt-key để xử lý sự kiện click
-            optionsHtml += `<li class="${cls}" data-q-index="${questionIndex - 1}" data-opt-key="${opt.key}">
-                                <span class="option-key">${opt.key}.</span> ${opt.content}
-                            </li>`;
+        if (!currentQuestion) {
+            return;
         }
 
-        // Thêm data-q-index và sự kiện onclick cho khối câu hỏi (Tính năng 1)
-        //<span class="q-number">Câu ${questionIndex}:</span> 
-        htmlBuffer += `<div class="question-block" id="${qId}" data-raw-start="${currentQ.rawStart}" onclick="scrollToRaw(${currentQ.rawStart})">
-                            <div class="q-text">
-                            ${currentQ.questionText}</div>
-                            <ul class="options-list">${optionsHtml}</ul>
-                            </div>`;
+        finalizeQuestion(currentQuestion);
+        currentQuestion.id = `q-${questionIndex}`;
+        finalExamData.push(currentQuestion);
+        currentQuestion = null;
     };
 
-    // --- BẮT ĐẦU QUÉT (SCANNING) ---
-    let start = 0;
-    let end = text.indexOf('\n');
-    let line = "";
-    let lineStart = 0; // Vị trí bắt đầu của dòng hiện tại trong nội dung thô
-
-    while (end !== -1) {
-        line = text.substring(start, end).trim();
-        lineStart = start; // Ghi nhận vị trí bắt đầu của dòng
-
-        if (line) {
-            parseLine(line, lineStart);
+    lines.forEach((rawLine, lineIndex) => {
+        const line = normalizeLine(rawLine);
+        if (!line) {
+            return;
         }
 
-        start = end + 1;
-        end = text.indexOf('\n', start);
-    }
-    // Xử lý dòng cuối cùng
-    line = text.substring(start).trim();
-    lineStart = start;
-    if (line) parseLine(line, lineStart);
+        const questionMatch = line.match(/^(?:cau|câu|question|q)\s*\d+\s*[:.)-]?\s*(.+)$/i) ||
+            line.match(/^(\d+)\s*[.)]\s*(.+)$/);
 
-    // Lưu câu hỏi cuối cùng
-    flushQuestion();
+        if (questionMatch) {
+            flushQuestion();
+            questionIndex += 1;
 
-    // --- KẾT THÚC QUÉT ---
-
-    // Hàm xử lý logic từng dòng
-    function parseLine(str, rawStart) {
-        const firstChar = str[0];
-
-        // TRƯỜNG HỢP: Là câu hỏi "Câu ...", "Cau ...", hoặc "Question ..."
-        if (/^(câu|cau|question)\s/i.test(str)) {
-            flushQuestion(); // Gặp câu mới -> Lưu câu cũ lại
-            questionIndex++; // Tăng chỉ số câu hỏi
-
-            // Tạo đối tượng câu mới
-            currentQ = {
-                questionText: str,
+            const questionContent = (questionMatch[1] && questionMatch[2]) ? questionMatch[2] : questionMatch[1];
+            currentQuestion = {
+                questionNumber: questionIndex,
+                questionText: questionContent.trim(),
                 options: [],
                 correctKey: null,
-                rawStart: rawStart // Vị trí bắt đầu của câu hỏi trong nội dung thô
+                rawStart: getRawStart(lines, lineIndex)
             };
             return;
         }
 
-        // Nếu chưa có câu hỏi nào được khởi tạo thì bỏ qua
-        if (!currentQ) return;
+        if (!currentQuestion) {
+            return;
+        }
 
-        // TRƯỜNG HỢP: Là đáp án đúng (*A., *B., ...)
-        if (firstChar === '*') {
-            const key = str[1];
-            const content = str.substring(3).trim();
-            currentQ.correctKey = key;
-            // Tìm và cập nhật trạng thái isCorrect cho đáp án cũ (nếu có)
-            const existingOptIndex = currentQ.options.findIndex(opt => opt.key === key);
-            if (existingOptIndex !== -1) {
-                // Nếu đáp án *A. đã tồn tại là A., cập nhật lại
-                currentQ.options[existingOptIndex] = { key: key, content: content, isCorrect: true };
+        const optionMatch = line.match(/^(\*)?\s*([A-Da-d])\s*[.):-]\s*(.+)$/);
+        if (optionMatch) {
+            const key = optionMatch[2].toUpperCase();
+            const content = optionMatch[3].trim();
+            const isCorrect = Boolean(optionMatch[1]);
+            const existing = currentQuestion.options.find((option) => option.key === key);
+
+            if (existing) {
+                existing.content = content;
+                existing.isCorrect = isCorrect;
             } else {
-                currentQ.options.push({ key: key, content: content, isCorrect: true });
+                currentQuestion.options.push({ key, content, isCorrect });
+            }
+
+            if (isCorrect) {
+                currentQuestion.correctKey = key;
             }
             return;
         }
 
-        // TRƯỜNG HỢP: Là đáp án thường (A., B., C., D.)
-        if (str[1] === '.') {
-            const key = firstChar;
-            if (key >= 'A' && key <= 'Z') {
-                const content = str.substring(2).trim();
-                currentQ.options.push({ key: key, content: content, isCorrect: false });
-                return;
-            }
+        const answerMatch = line.match(/^(?:dap an|đáp án|answer)\s*[:\-]?\s*([A-Da-d])$/i);
+        if (answerMatch) {
+            currentQuestion.correctKey = answerMatch[1].toUpperCase();
+            return;
         }
 
-        // TRƯỜNG HỢP: Dòng nối tiếp của câu hỏi
-        currentQ.questionText += " <br>" + str;
-    }
+        if (currentQuestion.options.length > 0) {
+            const lastOption = currentQuestion.options[currentQuestion.options.length - 1];
+            lastOption.content = `${lastOption.content} ${line}`.trim();
+            return;
+        }
 
-    // UPDATE DOM 1 LẦN DUY NHẤT
-    previewDiv.innerHTML = htmlBuffer;
-
-    // Gán lại sự kiện click cho các option sau khi render
-    document.querySelectorAll('.option-item').forEach(item => {
-        item.addEventListener('click', toggleAnswer);
+        currentQuestion.questionText = `${currentQuestion.questionText} ${line}`.trim();
     });
 
-    console.timeEnd("UltraFastParse");
+    flushQuestion();
+    syncCorrectState();
+    renderPreview();
+    updateSummary();
 }
 
-// 5. Tính năng TƯƠNG TÁC 1: Nhấn câu bên Xem trước -> Nhảy tới bên Nội dung thô
-function scrollToRaw(rawStart) {
-    if (!textArea) return;
+function finalizeQuestion(question) {
+    question.questionText = sanitizeInlineText(question.questionText);
+    question.options = question.options
+        .map((option) => ({
+            key: option.key,
+            content: sanitizeInlineText(option.content),
+            isCorrect: Boolean(option.isCorrect)
+        }))
+        .sort((left, right) => left.key.localeCompare(right.key));
+}
 
-    // 1. Focus và bôi đen vị trí (để con trỏ nhấp nháy đúng chỗ)
+function syncCorrectState() {
+    finalExamData.forEach((question) => {
+        question.options.forEach((option) => {
+            option.isCorrect = option.key === question.correctKey;
+        });
+    });
+}
+
+function renderPreview() {
+    if (!previewDiv) {
+        return;
+    }
+
+    if (finalExamData.length === 0) {
+        previewDiv.innerHTML = `
+            <div class="empty-state">
+                <h3>Chua co cau hoi nao duoc nhan dien</h3>
+                <p>Dinh dang de theo mau "Cau 1", "A.", "B.", "C.", "D." de he thong xu ly on dinh hon.</p>
+            </div>`;
+        return;
+    }
+
+    const html = finalExamData.map((question, index) => {
+        const issueList = getQuestionIssues(question);
+        const optionsHtml = question.options.map((option) => `
+            <button type="button"
+                class="option-chip ${option.isCorrect ? "is-correct" : ""}"
+                data-q-index="${index}"
+                data-opt-key="${option.key}">
+                <span>${option.key}</span>
+                <strong>${escapeHtml(option.content)}</strong>
+            </button>`).join("");
+
+        const issueHtml = issueList.length
+            ? `<div class="question-issues">${issueList.map((issue) => `<span>${escapeHtml(issue)}</span>`).join("")}</div>`
+            : `<div class="question-issues ok"><span>San sang luu</span></div>`;
+
+        return `
+            <article class="question-card" data-raw-start="${question.rawStart}">
+                <div class="question-card__top">
+                    <div>
+                        <p class="question-label">Cau ${question.questionNumber}</p>
+                        <h3>${escapeHtml(question.questionText)}</h3>
+                    </div>
+                    <button type="button" class="jump-link" onclick="scrollToRaw(${question.rawStart})">Den noi dung</button>
+                </div>
+                <div class="option-grid">${optionsHtml}</div>
+                ${issueHtml}
+            </article>`;
+    }).join("");
+
+    previewDiv.innerHTML = html;
+
+    document.querySelectorAll(".option-chip").forEach((item) => {
+        item.addEventListener("click", toggleAnswer);
+    });
+}
+
+function updateSummary() {
+    const answeredCount = finalExamData.filter((question) => question.correctKey).length;
+    const issueCount = finalExamData.reduce((total, question) => total + getQuestionIssues(question).length, 0);
+
+    if (questionCountEl) {
+        questionCountEl.textContent = String(finalExamData.length);
+    }
+
+    if (answeredCountEl) {
+        answeredCountEl.textContent = String(answeredCount);
+    }
+
+    if (issueCountEl) {
+        issueCountEl.textContent = String(issueCount);
+    }
+
+    if (finalExamData.length === 0) {
+        updateParseStatus("Dang cho noi dung de thi...", "idle");
+        return;
+    }
+
+    if (issueCount === 0) {
+        updateParseStatus("Parser da nhan dien tot. Ban co the kiem tra nhanh roi luu de.", "success");
+        return;
+    }
+
+    updateParseStatus("Da parse xong nhung van con mot vai cau can kiem tra truoc khi luu.", "warning");
+}
+
+function updateParseStatus(message, state) {
+    if (!parseStatusEl) {
+        return;
+    }
+
+    parseStatusEl.textContent = message;
+    parseStatusEl.dataset.state = state;
+}
+
+function getQuestionIssues(question) {
+    const issues = [];
+
+    if (!question.questionText) {
+        issues.push("Thieu noi dung cau hoi");
+    }
+
+    if (question.options.length < 4) {
+        issues.push("Chua du 4 dap an A-D");
+    }
+
+    if (!question.correctKey) {
+        issues.push("Chua chon dap an dung");
+    }
+
+    return issues;
+}
+
+function toggleAnswer(event) {
+    const optionElement = event.currentTarget;
+    const qIndex = Number(optionElement.getAttribute("data-q-index"));
+    const key = optionElement.getAttribute("data-opt-key");
+
+    const currentQuestion = finalExamData[qIndex];
+    if (!currentQuestion || !key) {
+        return;
+    }
+
+    currentQuestion.correctKey = currentQuestion.correctKey === key ? null : key;
+    syncCorrectState();
+    rewriteTextareaFromData();
+    renderPreview();
+    updateSummary();
+}
+
+function rewriteTextareaFromData() {
+    if (!textArea) {
+        return;
+    }
+
+    const normalized = finalExamData.map((question, index) => {
+        const lines = [`Cau ${index + 1}: ${question.questionText}`];
+        ["A", "B", "C", "D"].forEach((key) => {
+            const option = question.options.find((item) => item.key === key);
+            if (option) {
+                const marker = question.correctKey === key ? "*" : "";
+                lines.push(`${marker}${key}. ${option.content}`);
+            }
+        });
+        return lines.join("\n");
+    });
+
+    textArea.value = normalized.join("\n\n");
+}
+
+function scrollToRaw(rawStart) {
+    if (!textArea) {
+        return;
+    }
+
     textArea.focus();
     textArea.setSelectionRange(rawStart, rawStart);
 
-    // 2. KỸ THUẬT MIRROR DIV: Đo chiều cao thực tế (bao gồm cả dòng wrap)
-    // Tạo một div ảo để mô phỏng nội dung tính đến vị trí con trỏ
-    const mirrorDiv = document.createElement('div');
-    const style = window.getComputedStyle(textArea);
-
-    // Sao chép các thuộc tính CSS quan trọng ảnh hưởng đến kích thước chữ và dòng
-    const props = ['box-sizing', 'width', 'padding', 'border', 'font-family', 'font-size', 'font-weight', 'font-style', 'letter-spacing', 'line-height', 'text-transform', 'word-spacing', 'text-indent'];
-
-    props.forEach(prop => {
-        mirrorDiv.style[prop] = style.getPropertyValue(prop);
-    });
-
-    // Các style bắt buộc để div này ẩn đi nhưng vẫn đo được
-    mirrorDiv.style.position = 'absolute';
-    mirrorDiv.style.top = '0px';
-    mirrorDiv.style.left = '-9999px'; // Giấu khỏi màn hình
-    mirrorDiv.style.visibility = 'hidden';
-    mirrorDiv.style.whiteSpace = 'pre-wrap'; // Quan trọng: Giữ định dạng xuống dòng giống textarea
-    mirrorDiv.style.wordWrap = 'break-word';
-
-    // Lấy nội dung từ đầu đến vị trí con trỏ
-    const textUntilCursor = textArea.value.substring(0, rawStart);
-
-    // Đưa nội dung vào div. Thêm một ký tự đặc biệt để giữ dòng cuối nếu là xuống dòng
-    mirrorDiv.textContent = textUntilCursor;
-
-    // Thêm div vào body để trình duyệt tính toán kích thước
-    document.body.appendChild(mirrorDiv);
-
-    // 3. Lấy chiều cao thực tế (Đây là vị trí pixel chính xác của dòng đó)
-    const exactHeight = mirrorDiv.scrollHeight;
-
-    // Xóa div ảo sau khi dùng xong
-    document.body.removeChild(mirrorDiv);
-
-    // 4. Tính toán vị trí cuộn để đưa dòng đó ra GIỮA màn hình
-    // Công thức: Vị trí dòng - (1/2 chiều cao khung nhìn)
-    const viewportHeight = textArea.clientHeight;
-
-    // Dùng setTimeout để đảm bảo việc cuộn xảy ra sau khi trình duyệt focus xong
-    setTimeout(() => {
-        textArea.scrollTop = exactHeight - (viewportHeight / 2);
-    }, 10);
+    const approximateLineHeight = 24;
+    const prefix = textArea.value.slice(0, rawStart);
+    const lineCount = prefix.split("\n").length - 1;
+    textArea.scrollTop = Math.max(0, (lineCount * approximateLineHeight) - (textArea.clientHeight / 2));
 }
 
-
-// 6. Tính năng TƯƠNG TÁC 2: Chỉnh Đáp án bên Xem trước -> Sửa nội dung thô
-function toggleAnswer(event) {
-    const optionElement = event.currentTarget;
-    const qIndex = parseInt(optionElement.getAttribute('data-q-index'));
-    const key = optionElement.getAttribute('data-opt-key');
-
-    if (isNaN(qIndex)) return;
-
-    const currentQ = finalExamData[qIndex];
-    if (!currentQ) return;
-
-    const rawText = textArea.value;
-    const isCurrentlyCorrect = optionElement.classList.contains('is-correct');
-
-    let newRawText = rawText;
-
-    // 1. TÌM VÀ GỠ BỎ ĐÁP ÁN ĐÚNG CŨ (Nếu có)
-    if (currentQ.correctKey) {
-        // Tạo chuỗi tìm kiếm đáp án đúng cũ: *<Key>.<Space>
-        const oldCorrectKey = currentQ.correctKey;
-        // Chuẩn hóa câu hỏi để tìm kiếm chính xác vị trí trong văn bản thô
-        const questionTextWithoutPrefix = currentQ.questionText.replace(/<\s*br\s*>/g, ' ').trim();
-        const questionStart = rawText.indexOf(questionTextWithoutPrefix.split('<br>')[0].split('\n')[0].trim());
-
-        // Nếu không tìm thấy vị trí câu hỏi (do người dùng sửa quá nhiều), thì thoát
-        if (questionStart === -1) {
-            alert("Lỗi: Không thể tìm thấy vị trí câu hỏi trong nội dung thô để sửa.");
-            return;
-        }
-
-        // Khu vực tìm kiếm (chỉ tìm trong phạm vi câu hỏi hiện tại)
-        let searchArea = rawText.substring(questionStart);
-        const nextQIndex = qIndex + 1;
-        if (nextQIndex < finalExamData.length) {
-            // Giới hạn khu vực tìm kiếm đến câu hỏi tiếp theo
-            searchArea = rawText.substring(questionStart, finalExamData[nextQIndex].rawStart);
-        }
-
-        // Tìm vị trí của đáp án đúng cũ (*Key.) trong khu vực tìm kiếm
-        const oldCorrectLinePrefix = `*${oldCorrectKey}.`;
-        let oldCorrectLineIndexInSearchArea = searchArea.indexOf(oldCorrectLinePrefix);
-
-        if (oldCorrectLineIndexInSearchArea !== -1) {
-            // Vị trí tuyệt đối trong rawText
-            const absoluteOldCorrectIndex = questionStart + oldCorrectLineIndexInSearchArea;
-
-            // Thay thế '*' bằng khoảng trắng (biến *A. thành A.)
-            newRawText = newRawText.substring(0, absoluteOldCorrectIndex) +
-                newRawText.substring(absoluteOldCorrectIndex + 1);
-        }
-    }
-
-    // 2. THÊM ĐÁP ÁN ĐÚNG MỚI (Nếu không phải là đang gỡ bỏ đáp án cũ)
-    if (!isCurrentlyCorrect) {
-        // Tạo chuỗi tìm kiếm đáp án mới: <Key>.<Space>
-        const newCorrectLinePrefix = `${key}.`;
-
-        // Cần phải tìm lại vị trí của câu hỏi trong newRawText
-        const questionTextWithoutPrefix = currentQ.questionText.replace(/<\s*br\s*>/g, ' ').trim();
-        const questionStartNew = newRawText.indexOf(questionTextWithoutPrefix.split('<br>')[0].split('\n')[0].trim());
-
-        let searchAreaNew = newRawText.substring(questionStartNew);
-        const nextQIndex = qIndex + 1;
-        if (nextQIndex < finalExamData.length) {
-            // Giới hạn khu vực tìm kiếm đến câu hỏi tiếp theo
-            searchAreaNew = newRawText.substring(questionStartNew, finalExamData[nextQIndex].rawStart);
-        }
-
-        let newCorrectLineIndexInSearchArea = searchAreaNew.indexOf(newCorrectLinePrefix);
-
-        if (newCorrectLineIndexInSearchArea !== -1) {
-            // Vị trí tuyệt đối trong newRawText
-            const absoluteNewCorrectIndex = questionStartNew + newCorrectLineIndexInSearchArea;
-
-            // Chèn '*' vào trước (biến A. thành *A.)
-            newRawText = newRawText.substring(0, absoluteNewCorrectIndex) +
-                '*' + newRawText.substring(absoluteNewCorrectIndex);
-        }
-    }
-
-    // 3. Cập nhật nội dung thô và kích hoạt parse lại
-    textArea.value = newRawText;
-    processText();
-
-
-}
-
-
-// 7. Hàm Lưu (Giống code cũ)
 function saveExam() {
     if (finalExamData.length === 0) {
-        alert("Chưa có dữ liệu đề thi!");
+        alert("Chua co du lieu de thi.");
         return;
     }
-    console.log("Dữ liệu gửi đi:", JSON.stringify(finalExamData));
-    const My = document.getElementById('examModal');
-    showExamModal()
-    My.style.display = 'flex';
+
+    showExamModal();
 }
-// Hàm ẩn lỗi
+
 function clearErrors() {
-    document.querySelectorAll('.error-message').forEach(el => {
-        el.style.display = 'none';
-        el.innerText = '';
+    document.querySelectorAll(".error-message").forEach((element) => {
+        element.style.display = "none";
+        element.innerText = "";
     });
 }
 
 function showExamModal() {
-
     if (finalExamData.length === 0) {
-        alert("Chưa có câu hỏi nào được tạo! Vui lòng nhập nội dung.");
+        alert("Chua co cau hoi nao duoc tao.");
         return;
     }
-    const totalEl = document.getElementById('totalQuestionsCount');
+
+    const totalEl = document.getElementById("totalQuestionsCount");
     if (totalEl) {
-        // Lấy độ dài mảng finalExamData
-        totalEl.innerText = finalExamData.length;
+        totalEl.innerText = String(finalExamData.length);
     }
-    document.getElementById('examModal').style.display = 'flex';
+
+    document.getElementById("examModal").style.display = "flex";
 }
 
 function closeModal() {
-    document.getElementById('examModal').style.display = 'none';
-    // Reset form
-    document.getElementById('examTitle').value = '';
-    document.getElementById('examDuration').value = '';
+    document.getElementById("examModal").style.display = "none";
+    document.getElementById("examTitle").value = "";
+    document.getElementById("examDuration").value = "";
     document.querySelector('input[name="examType"][value="exam"]').checked = true;
+    const publicCheckbox = document.getElementById("examIsPublic");
+    if (publicCheckbox) {
+        publicCheckbox.checked = false;
+    }
     clearErrors();
 }
+
+function normalizeLine(line) {
+    return line
+        .replace(/\u00a0/g, " ")
+        .replace(/\t/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+}
+
+function sanitizeInlineText(text) {
+    return text.replace(/\s+/g, " ").trim();
+}
+
+function getRawStart(lines, lineIndex) {
+    let total = 0;
+    for (let i = 0; i < lineIndex; i += 1) {
+        total += lines[i].length + 1;
+    }
+    return total;
+}
+
+function escapeHtml(value) {
+    return value
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+}
+
 window.showExamModal = showExamModal;
 window.closeModal = closeModal;
+window.saveExam = saveExam;
+window.simulateUpload = simulateUpload;
+window.scrollToRaw = scrollToRaw;
+window.processText = processText;

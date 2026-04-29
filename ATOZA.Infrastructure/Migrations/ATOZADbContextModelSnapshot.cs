@@ -133,6 +133,11 @@ namespace ATOZA.Infrastructure.Migrations
                     b.Property<int>("ExamMode")
                         .HasColumnType("int");
 
+                    b.Property<bool>("IsPublic")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
                     b.Property<DateTime>("StartTime")
                         .HasColumnType("datetime2");
 
@@ -276,6 +281,11 @@ namespace ATOZA.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
                     b.Property<string>("PasswordHash")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -297,6 +307,19 @@ namespace ATOZA.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("Users", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = -1,
+                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Email = "admin@atoza.vn",
+                            FullName = "System Admin",
+                            IsActive = true,
+                            PasswordHash = "PBKDF2$100000$39Xdq+NQ2Yt9iv9N838zgw==$+JZYl/jpXSEclHFp1LCWzWwVSMI7gqNtQqX3045FutE=",
+                            Role = 2,
+                            UserName = "admin"
+                        });
                 });
 
             modelBuilder.Entity("ATOZA.Domain.Entities.Class", b =>

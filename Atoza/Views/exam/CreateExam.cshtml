@@ -1,51 +1,127 @@
 @{
-    Layout = null;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    bool isEdit = ViewBag.IsEditMode == true;
+    int editExamId = isEdit ? (int)(ViewBag.EditExamId ?? 0) : 0;
+    string editTitle = isEdit ? (ViewBag.EditExamTitle as string ?? "") : "";
+    int editDuration = isEdit ? (int)(ViewBag.EditExamDuration ?? 0) : 0;
+    string editMode = isEdit ? (ViewBag.EditExamMode as string ?? "Assessment") : "Assessment";
+    bool editIsPublic = isEdit && (ViewBag.EditExamIsPublic == true);
+
+    ViewData["Title"] = isEdit ? "Chinh sua de thi" : "Trinh soan de";
     string rawContentFromController = ViewBag.RawContent as string ?? "";
+    string uploadError = ViewBag.Error as string ?? "";
 }
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tạo Đề Thi - Azota Clone</title>
-    <link rel="stylesheet" href="~/css/CreateExam.css" />
 
-</head>
-<body>
+<link rel="stylesheet" href="~/css/CreateExam.css" asp-append-version="true" />
 
-    <header>
-        <h3>📝 Trình Soạn Thảo Đề Thi</h3>
+<section class="exam-workspace">
+    <div class="exam-workspace__hero">
         <div>
-            <button class="btn btn-warning" onclick="simulateUpload()">📂 Tải file mẫu</button>
-            <button class="btn btn-success" onclick="saveExam()">💾 Lưu Đề Thi</button>
+            <p class="eyebrow">Atoza Exam Studio</p>
+            @if (isEdit)
+            {
+                <h1>Chinh sua de thi: @editTitle</h1>
+                <p class="hero-copy">
+                    Sua noi dung cau hoi, dap an, tuy chinh thoi gian va luu lai thay doi.
+                </p>
+            }
+            else
+            {
+                <h1>Bien file Word/PDF thanh de thi co cau truc ro rang</h1>
+                <p class="hero-copy">
+                    Dan noi dung hoac tai file tu giao vien, he thong se chuan hoa thanh cau hoi A, B, C, D de ban xem lai va luu nhanh.
+                </p>
+            }
         </div>
-    </header>
-
-    <div class="container">
-        <div class="editor-col">
-            <textarea id="rawContent" spellcheck="false" placeholder="Dán nội dung đề thi vào đây...">@rawContentFromController</textarea>
-        </div>
-
-        <div class="preview-col">
-            <div id="previewContent">
-            </div>
+        <div class="hero-actions">
+            @if (isEdit)
+            {
+                <a class="secondary-link" href="@Url.Action("Index", "Teacher")">Quay lai Dashboard</a>
+            }
+            else
+            {
+                <a class="secondary-link" href="@Url.Action("TeacherCreateExam", "Teacher")">Quay lai khu tai file</a>
+            }
+            <button type="button" class="primary-action" onclick="saveExam()">
+                @(isEdit ? "Cap nhat de thi" : "Luu de thi")
+            </button>
         </div>
     </div>
-    <partial name="SaveExam" />
-    <script src="~/js/CreateExam.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const textArea = document.getElementById('rawContent');
 
-            // Nếu textarea có dữ liệu (do Razor đổ vào từ Controller)
-            if (textArea.value.trim().length > 0) {
-                // Gọi hàm processText() ngay lập tức
-                // Kiểm tra xem hàm đã được định nghĩa chưa để tránh lỗi
-                if (typeof processText === "function") {
-                    processText();
+    @if (!string.IsNullOrWhiteSpace(uploadError))
+    {
+        <div class="workspace-alert">@uploadError</div>
+    }
+
+    @* Hidden fields cho edit mode *@
+    @if (isEdit)
+    {
+        <input type="hidden" id="editExamId" value="@editExamId" />
+        <input type="hidden" id="editExamTitle" value="@editTitle" />
+        <input type="hidden" id="editExamDuration" value="@editDuration" />
+        <input type="hidden" id="editExamMode" value="@editMode" />
+        <input type="hidden" id="editExamIsPublic" value="@editIsPublic.ToString().ToLower()" />
+    }
+
+    <div class="workspace-stats">
+        <article>
+            <span>Tong cau</span>
+            <strong id="questionCount">0</strong>
+        </article>
+        <article>
+            <span>Da co dap an</span>
+            <strong id="answeredCount">0</strong>
+        </article>
+        <article>
+            <span>Can xem lai</span>
+            <strong id="issueCount">0</strong>
+        </article>
+        <article class="status-card">
+            <span>Trang thai parser</span>
+            <strong id="parseStatus" data-state="idle">Dang cho noi dung de thi...</strong>
+        </article>
+    </div>
+
+    <div class="workspace-grid">
+        <section class="panel panel-editor">
+            <div class="panel-header">
+                <div>
+                    <p class="panel-title">Noi dung goc</p>
+                    <h2>Dan de thi vao day</h2>
+                </div>
+                @if (!isEdit)
+                {
+                    <button type="button" class="ghost-action" onclick="simulateUpload()">Tai file mau</button>
                 }
+            </div>
+            <p class="panel-note">
+                Goi y: dung dinh dang "Cau 1", "A.", "B.", "C.", "D." hoac "Dap an: B" de parser nhan dien on dinh hon.
+            </p>
+            <textarea id="rawContent" spellcheck="false" placeholder="Cau 1: Noi dung cau hoi&#10;A. Lua chon A&#10;B. Lua chon B&#10;C. Lua chon C&#10;*D. Lua chon dung">@rawContentFromController</textarea>
+        </section>
+
+        <section class="panel panel-preview">
+            <div class="panel-header">
+                <div>
+                    <p class="panel-title">Xem truoc</p>
+                    <h2>Ban xem va chinh dap an ngay tai day</h2>
+                </div>
+            </div>
+            <div id="previewContent" class="preview-shell"></div>
+        </section>
+    </div>
+</section>
+
+<partial name="SaveExam" />
+
+@section Scripts {
+    <script src="~/js/CreateExam.js" asp-append-version="true"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            if (typeof processText === "function") {
+                processText();
             }
         });
     </script>
-</body>
-</html>
+}

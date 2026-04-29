@@ -33,12 +33,14 @@
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label class="form-label fw-bold">Mở đề từ lúc</label>
-                                <input type="text" name="AvailableFrom" class="form-control datetimepicker" required placeholder="Chọn thời gian" />
+                                <input type="text" id="AvailableFromLocal" class="form-control datetimepicker" required placeholder="Chọn thời gian" />
+                                <input type="hidden" id="AvailableFromUtc" name="availableFromUtc" />
                             </div>
 
                             <div class="col-md-6 mb-3">
                                 <label class="form-label fw-bold">Hạn nộp bài</label>
-                                <input type="text" name="DueDate" class="form-control datetimepicker" required placeholder="Chọn thời gian" />
+                                <input type="text" id="DueDateLocal" class="form-control datetimepicker" required placeholder="Chọn thời gian" />
+                                <input type="hidden" id="DueDateUtc" name="dueDateUtc" />
                             </div>
                         </div>
 
@@ -62,6 +64,26 @@
         flatpickr(".datetimepicker", {
             enableTime: true,
             dateFormat: "Y-m-d H:i"
+        });
+
+        const form = document.querySelector("form");
+        const availableLocal = document.getElementById("AvailableFromLocal");
+        const dueLocal = document.getElementById("DueDateLocal");
+        const availableUtc = document.getElementById("AvailableFromUtc");
+        const dueUtc = document.getElementById("DueDateUtc");
+
+        form.addEventListener("submit", function(event) {
+            const availableDate = availableLocal._flatpickr?.selectedDates?.[0];
+            const dueDate = dueLocal._flatpickr?.selectedDates?.[0];
+
+            if (!availableDate || !dueDate) {
+                event.preventDefault();
+                alert("Vui long chon du thoi gian mo de va han nop.");
+                return;
+            }
+
+            availableUtc.value = availableDate.toISOString();
+            dueUtc.value = dueDate.toISOString();
         });
     });
 </script>

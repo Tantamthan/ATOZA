@@ -238,6 +238,48 @@ body {
         color: white;
         border-color: var(--primary-color);
     }
+
+.option-label.practice-correct {
+    background-color: #e8f5e9;
+    border-color: #2e7d32;
+}
+
+    .option-label.practice-correct .option-key {
+        background-color: #2e7d32;
+        border-color: #2e7d32;
+        color: white;
+    }
+
+.option-label.practice-incorrect {
+    background-color: #ffebee;
+    border-color: #c62828;
+}
+
+    .option-label.practice-incorrect .option-key {
+        background-color: #c62828;
+        border-color: #c62828;
+        color: white;
+    }
+
+.practice-feedback {
+    min-height: 24px;
+    margin-top: 8px;
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+    .practice-feedback.is-loading {
+        color: #6c757d;
+    }
+
+    .practice-feedback.is-correct {
+        color: #2e7d32;
+    }
+
+    .practice-feedback.is-incorrect,
+    .practice-feedback.is-error {
+        color: #c62828;
+    }
 /* #endregion 4. OPTIONS / RADIO BUTTONS 🔘 */
 
 /* #region 5. SIDEBAR / QUESTION PALETTE 📋 */

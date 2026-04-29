@@ -15,4 +15,10 @@ namespace ATOZA.Application.DTOs.Class
         public DateTime AvailableFrom { get; set; }
         public DateTime DueDate { get; set; }
     }
+
+    public class AssignExamResultDto
+    {
+        public bool Success { get; set; }
+        public string? Error { get; set; }
+    }
 }

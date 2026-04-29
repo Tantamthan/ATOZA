@@ -13,17 +13,12 @@ namespace ATOZA.Infrastructure.Services
 
         public ClassService(IApplicationDbContext db) => _db = db;
 
-        // =====================================================
-        // GIÁO VIÊN
-        // =====================================================
-
         public Task<List<Class>> GetClassesByTeacherAsync(int teacherId)
         {
-            return Task.FromResult(
-                _db.Classes
-                   .Where(c => c.TeacherId == teacherId)
-                   .OrderByDescending(c => c.CreatedAt)
-                   .ToList());
+            return _db.Classes
+                .Where(c => c.TeacherId == teacherId)
+                .OrderByDescending(c => c.CreatedAt)
+                .ToListAsync();
         }
 
         public async Task<Class> CreateClassAsync(CreateClassDto dto, int teacherId)
@@ -35,6 +30,7 @@ namespace ATOZA.Infrastructure.Services
                 JoinCode = GenerateRandomCode(6),
                 CreatedAt = DateTime.UtcNow
             };
+
             _db.Classes.Add(newClass);
             await _db.SaveChangesAsync();
             return newClass;
@@ -42,18 +38,28 @@ namespace ATOZA.Infrastructure.Services
 
         public Task<Class?> GetClassDetailAsync(int classId, int teacherId)
         {
-            return Task.FromResult(
-                _db.Classes.FirstOrDefault(c => c.Id == classId && c.TeacherId == teacherId));
+            return _db.Classes.FirstOrDefaultAsync(c => c.Id == classId && c.TeacherId == teacherId);
         }
 
-        public Task<bool> AssignExamAsync(AssignExamDto dto, out string? errorMessage)
+        public async Task<AssignExamResultDto> AssignExamAsync(AssignExamDto dto, int teacherId)
         {
-            errorMessage = null;
             if (dto.DueDate <= dto.AvailableFrom)
-            {
-                errorMessage = "Hạn nộp phải sau thời gian bắt đầu.";
-                return Task.FromResult(false);
-            }
+                return AssignExamResult("Han nop phai sau thoi gian bat dau.");
+
+            bool ownsClass = await _db.Classes.AnyAsync(c =>
+                c.Id == dto.ClassId && c.TeacherId == teacherId);
+            if (!ownsClass)
+                return AssignExamResult("Ban khong co quyen giao bai cho lop nay.");
+
+            bool canUseExam = await _db.Exams.AnyAsync(e =>
+                e.Id == dto.ExamId && (e.CreatorId == teacherId || e.IsPublic));
+            if (!canUseExam)
+                return AssignExamResult("Ban khong co quyen su dung de thi nay.");
+
+            bool alreadyAssigned = await _db.ClassAssignments.AnyAsync(a =>
+                a.ClassId == dto.ClassId && a.ExamId == dto.ExamId);
+            if (alreadyAssigned)
+                return AssignExamResult("De thi nay da duoc giao cho lop.");
 
             _db.ClassAssignments.Add(new ClassAssignment
             {
@@ -63,35 +69,36 @@ namespace ATOZA.Infrastructure.Services
                 DueDate = dto.DueDate,
                 AssignedAt = DateTime.UtcNow
             });
-            _db.SaveChangesAsync();
-            return Task.FromResult(true);
+
+            await _db.SaveChangesAsync();
+            return new AssignExamResultDto { Success = true };
         }
 
-        public Task<List<ClassAssignment>> GetClassAssignmentsAsync(int classId, int teacherId)
+        public async Task<List<ClassAssignment>> GetClassAssignmentsAsync(int classId, int teacherId)
         {
-            var ownedClass = _db.Classes.FirstOrDefault(c =>
+            bool ownsClass = await _db.Classes.AnyAsync(c =>
                 c.Id == classId && c.TeacherId == teacherId);
 
-            if (ownedClass == null) return Task.FromResult(new List<ClassAssignment>());
+            if (!ownsClass) return new List<ClassAssignment>();
 
-            return Task.FromResult(
-                _db.ClassAssignments
-                   .Where(a => a.ClassId == classId)
-                   .OrderByDescending(a => a.AssignedAt)
-                   .ToList());
+            return await _db.ClassAssignments
+                .Include(a => a.Exam)
+                .Where(a => a.ClassId == classId)
+                .OrderByDescending(a => a.AssignedAt)
+                .ToListAsync();
         }
 
-        public Task<byte[]?> ExportStudentsCsvAsync(int classId, int teacherId)
+        public async Task<byte[]?> ExportStudentsCsvAsync(int classId, int teacherId)
         {
-            var targetClass = _db.Classes.FirstOrDefault(c =>
+            bool ownsClass = await _db.Classes.AnyAsync(c =>
                 c.Id == classId && c.TeacherId == teacherId);
 
-            if (targetClass == null) return Task.FromResult<byte[]?>(null);
+            if (!ownsClass) return null;
 
-            var students = _db.ClassStudents
-                              .Include(cs => cs.Student)
-                              .Where(cs => cs.ClassId == classId)
-                              .ToList();
+            var students = await _db.ClassStudents
+                .Include(cs => cs.Student)
+                .Where(cs => cs.ClassId == classId)
+                .ToListAsync();
 
             var sb = new StringBuilder();
             sb.AppendLine("STT,Ho va ten,Email,Ngay tham gia");
@@ -99,43 +106,34 @@ namespace ATOZA.Infrastructure.Services
             int i = 1;
             foreach (var item in students)
             {
-                sb.AppendLine($"{i},{item.Student.FullName},{item.Student.Email}," +
-                              $"{item.JoinedAt:dd/MM/yyyy HH:mm}");
+                sb.AppendLine($"{i},{item.Student.FullName},{item.Student.Email},{item.JoinedAt:dd/MM/yyyy HH:mm}");
                 i++;
             }
 
-            // BOM UTF-8 để Excel đọc được tiếng Việt
-            var data = Encoding.UTF8.GetPreamble()
-                               .Concat(Encoding.UTF8.GetBytes(sb.ToString()))
-                               .ToArray();
-
-            return Task.FromResult<byte[]?>(data);
+            return Encoding.UTF8.GetPreamble()
+                .Concat(Encoding.UTF8.GetBytes(sb.ToString()))
+                .ToArray();
         }
-
-        // =====================================================
-        // HỌC SINH
-        // =====================================================
 
         public Task<List<Class>> GetClassesByStudentAsync(int studentId)
         {
-            return Task.FromResult(
-                _db.Classes
-                   .Include(c => c.Teacher)
-                   .Where(c => c.ClassStudents.Any(cs => cs.StudentId == studentId))
-                   .ToList());
+            return _db.Classes
+                .Include(c => c.Teacher)
+                .Where(c => c.ClassStudents.Any(cs => cs.StudentId == studentId))
+                .ToListAsync();
         }
 
         public async Task<(bool Success, string? Error)> JoinClassAsync(string joinCode, int studentId)
         {
-            var targetClass = _db.Classes.FirstOrDefault(c => c.JoinCode == joinCode);
+            var targetClass = await _db.Classes.FirstOrDefaultAsync(c => c.JoinCode == joinCode);
             if (targetClass == null)
-                return (false, "Mã lớp không tồn tại.");
+                return (false, "Ma lop khong ton tai.");
 
-            bool alreadyJoined = _db.ClassStudents.Any(cs =>
+            bool alreadyJoined = await _db.ClassStudents.AnyAsync(cs =>
                 cs.ClassId == targetClass.Id && cs.StudentId == studentId);
 
             if (alreadyJoined)
-                return (false, "Bạn đã tham gia lớp này rồi.");
+                return (false, "Ban da tham gia lop nay roi.");
 
             _db.ClassStudents.Add(new ClassStudent
             {
@@ -143,28 +141,27 @@ namespace ATOZA.Infrastructure.Services
                 StudentId = studentId,
                 JoinedAt = DateTime.UtcNow
             });
+
             await _db.SaveChangesAsync();
             return (true, null);
         }
 
-        public Task<List<ClassAssignment>?> GetAssignmentsForStudentAsync(int classId, int studentId)
+        public async Task<List<ClassAssignment>?> GetAssignmentsForStudentAsync(int classId, int studentId)
         {
-            bool isInClass = _db.ClassStudents.Any(cs =>
+            bool isInClass = await _db.ClassStudents.AnyAsync(cs =>
                 cs.ClassId == classId && cs.StudentId == studentId);
 
-            if (!isInClass) return Task.FromResult<List<ClassAssignment>?>(null);
+            if (!isInClass) return null;
 
-            return Task.FromResult<List<ClassAssignment>?>(
-                _db.ClassAssignments
-                   .Include(a => a.Exam)
-                   .Where(a => a.ClassId == classId)
-                   .OrderByDescending(a => a.AssignedAt)
-                   .ToList());
+            return await _db.ClassAssignments
+                .Include(a => a.Exam)
+                .Where(a => a.ClassId == classId)
+                .OrderByDescending(a => a.AssignedAt)
+                .ToListAsync();
         }
 
-        // =====================================================
-        // PRIVATE HELPER
-        // =====================================================
+        private static AssignExamResultDto AssignExamResult(string error) =>
+            new() { Success = false, Error = error };
 
         private static string GenerateRandomCode(int length)
         {

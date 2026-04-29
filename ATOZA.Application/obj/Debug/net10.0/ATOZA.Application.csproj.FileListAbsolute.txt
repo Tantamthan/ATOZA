@@ -8,9 +8,9 @@ E:\project Wed\Atoza\ATOZA.Application\obj\Debug\net10.0\ATOZA.Application.Gener
 E:\project Wed\Atoza\ATOZA.Application\obj\Debug\net10.0\ATOZA.Application.AssemblyInfoInputs.cache
 E:\project Wed\Atoza\ATOZA.Application\obj\Debug\net10.0\ATOZA.Application.AssemblyInfo.cs
 E:\project Wed\Atoza\ATOZA.Application\obj\Debug\net10.0\ATOZA.Application.csproj.CoreCompileInputs.cache
+E:\project Wed\Atoza\ATOZA.Application\obj\Debug\net10.0\ATOZA.Application.sourcelink.json
 E:\project Wed\Atoza\ATOZA.Application\obj\Debug\net10.0\ATOZA.Ap.DD3FBA6D.Up2Date
 E:\project Wed\Atoza\ATOZA.Application\obj\Debug\net10.0\ATOZA.Application.dll
 E:\project Wed\Atoza\ATOZA.Application\obj\Debug\net10.0\refint\ATOZA.Application.dll
 E:\project Wed\Atoza\ATOZA.Application\obj\Debug\net10.0\ATOZA.Application.pdb
 E:\project Wed\Atoza\ATOZA.Application\obj\Debug\net10.0\ref\ATOZA.Application.dll
-E:\project Wed\Atoza\ATOZA.Application\obj\Debug\net10.0\ATOZA.Application.sourcelink.json

@@ -1,8 +1,11 @@
 using ATOZA.Application.Abstractions.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace Atoza_Web.Controllers
 {
+    [Authorize(Roles = "Student")]
     public class StudentController : Controller
     {
         private readonly IClassService _classService;
@@ -15,10 +18,12 @@ namespace Atoza_Web.Controllers
         }
 
         private bool IsStudent() =>
-            HttpContext.Session.GetString("Role") == "Student";
+            User.IsInRole("Student");
 
         private int StudentId =>
-            HttpContext.Session.GetInt32("IdUser") ?? 0;
+            int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId)
+                ? userId
+                : HttpContext.Session.GetInt32("IdUser") ?? 0;
 
         // Dashboard: Danh sách lớp đã tham gia
         public async Task<IActionResult> Index()

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace Atoza_Web.Controllers
 {
@@ -6,10 +7,13 @@ namespace Atoza_Web.Controllers
     {
         public IActionResult Index()
         {
-            // Nếu đã đăng nhập thì chuyển hướng về đúng trang
-            string? role = HttpContext.Session.GetString("Role");
+            string? role = HttpContext.Session.GetString("Role")
+                ?? User.FindFirstValue(ClaimTypes.Role);
+
             if (role == "Teacher") return RedirectToAction("Index", "Teacher");
             if (role == "Student") return RedirectToAction("Index", "Student");
+            if (role == "Admin") return RedirectToAction("Index", "Admin");
+
             return View();
         }
 

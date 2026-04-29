@@ -1,0 +1,28 @@
+@model ATOZA.Application.DTOs.DashboardStatsDto
+@{
+    ViewData["Title"] = "Admin";
+}
+
+<section class="admin-shell">
+    <div class="admin-header">
+        <div>
+            <h1>Admin Dashboard</h1>
+            <p>Thong ke he thong</p>
+        </div>
+        <div class="admin-actions">
+            <a class="btn btn-outline-primary" href="@Url.Action("UserList", "Admin")"><i class="fa-solid fa-users me-2"></i>Tai khoan</a>
+            <a class="btn btn-outline-primary" href="@Url.Action("ExamList", "Admin")"><i class="fa-solid fa-file-lines me-2"></i>De thi</a>
+            <a class="btn btn-outline-primary" href="@Url.Action("ClassList", "Admin")"><i class="fa-solid fa-chalkboard-user me-2"></i>Lop hoc</a>
+        </div>
+    </div>
+
+    <div class="admin-stat-grid">
+        <div class="admin-stat"><span>Teacher</span><strong>@Model.TotalTeachers</strong></div>
+        <div class="admin-stat"><span>Student</span><strong>@Model.TotalStudents</strong></div>
+        <div class="admin-stat"><span>De thi</span><strong>@Model.TotalExams</strong></div>
+        <div class="admin-stat"><span>Lop hoc</span><strong>@Model.TotalClasses</strong></div>
+        <div class="admin-stat"><span>Bai nop</span><strong>@Model.TotalSubmissions</strong></div>
+        <div class="admin-stat"><span>Active</span><strong>@Model.ActiveUsers</strong></div>
+        <div class="admin-stat"><span>Inactive</span><strong>@Model.InactiveUsers</strong></div>
+    </div>
+</section>

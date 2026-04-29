@@ -1,0 +1,67 @@
+@model List<ATOZA.Application.DTOs.UserListDto>
+@{
+    ViewData["Title"] = "Tai khoan";
+    string selectedRole = ViewBag.RoleFilter as string ?? string.Empty;
+}
+
+<section class="admin-shell">
+    <div class="admin-header">
+        <div>
+            <h1>Tai khoan</h1>
+            <p>@Model.Count nguoi dung</p>
+        </div>
+        <form method="get" class="admin-filter">
+            <select name="roleFilter" class="form-select" onchange="this.form.submit()">
+                <option value="" selected="@(selectedRole == string.Empty ? "selected" : null)">Tat ca role</option>
+                <option value="Student" selected="@(selectedRole == "Student" ? "selected" : null)">Student</option>
+                <option value="Teacher" selected="@(selectedRole == "Teacher" ? "selected" : null)">Teacher</option>
+                <option value="Admin" selected="@(selectedRole == "Admin" ? "selected" : null)">Admin</option>
+            </select>
+        </form>
+    </div>
+
+    @await Html.PartialAsync("_AdminFlash")
+
+    <div class="admin-table-wrap">
+        <table class="table align-middle admin-table">
+            <thead>
+                <tr>
+                    <th>Ho ten</th>
+                    <th>Email</th>
+                    <th>UserName</th>
+                    <th>Role</th>
+                    <th>Ngay tao</th>
+                    <th>Trang thai</th>
+                    <th class="text-end">Thao tac</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var user in Model)
+                {
+                    <tr>
+                        <td class="fw-semibold">@user.FullName</td>
+                        <td>@user.Email</td>
+                        <td>@user.UserName</td>
+                        <td><span class="badge text-bg-light">@user.Role</span></td>
+                        <td>@user.CreatedAt.ToString("dd/MM/yyyy")</td>
+                        <td>
+                            <span class="admin-status @(user.IsActive ? "is-active" : "is-inactive")">
+                                @(user.IsActive ? "Active" : "Inactive")
+                            </span>
+                        </td>
+                        <td class="text-end">
+                            <form asp-action="ToggleUserStatus" method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="userId" value="@user.Id" />
+                                <input type="hidden" name="isActive" value="@(!user.IsActive)" />
+                                <button type="submit" class="btn btn-sm @(user.IsActive ? "btn-outline-danger" : "btn-outline-success")">
+                                    @(user.IsActive ? "Khoa" : "Mo khoa")
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</section>

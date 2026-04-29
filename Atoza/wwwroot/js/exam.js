@@ -88,6 +88,95 @@ function markAnswered(orderNum) {
     updateAnsweredCount();
 }
 
+function handleAnswerChange(qId, orderNum) {
+    markAnswered(orderNum);
+
+    if (typeof isPracticeMode !== 'undefined' && isPracticeMode) {
+        checkPracticeAnswer(qId);
+    }
+}
+
+function checkPracticeAnswer(qId) {
+    const examIdElement = document.getElementById('examId');
+    const selectedRadio = document.querySelector('input[name="q_' + qId + '"]:checked');
+    if (!examIdElement || !selectedRadio) return;
+
+    clearPracticeState(qId);
+    const feedback = document.getElementById('practice-feedback-' + qId);
+    if (feedback) {
+        feedback.className = 'practice-feedback is-loading';
+        feedback.innerText = 'Dang kiem tra dap an...';
+    }
+
+    fetch('/Exam/CheckPracticeAnswer', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+        },
+        body: JSON.stringify({
+            ExamId: parseInt(examIdElement.value),
+            QuestionId: qId,
+            SelectedOption: selectedRadio.value
+        })
+    })
+        .then(function (response) {
+            return response.json().then(function (data) {
+                return { ok: response.ok, data: data };
+            });
+        })
+        .then(function (result) {
+            const data = result.data;
+            if (!result.ok || !data.success) {
+                if (feedback) {
+                    feedback.className = 'practice-feedback is-error';
+                    feedback.innerText = data.message || 'Khong the kiem tra dap an.';
+                }
+                return;
+            }
+
+            showPracticeFeedback(qId, selectedRadio.value, data.correctAnswer, data.isCorrect);
+        })
+        .catch(function () {
+            if (feedback) {
+                feedback.className = 'practice-feedback is-error';
+                feedback.innerText = 'Khong the ket noi de kiem tra dap an.';
+            }
+        });
+}
+
+function showPracticeFeedback(qId, selectedOption, correctAnswer, isCorrect) {
+    clearPracticeState(qId);
+
+    const selectedInput = document.querySelector('input[name="q_' + qId + '"][value="' + selectedOption + '"]');
+    const correctInput = document.querySelector('input[name="q_' + qId + '"][value="' + correctAnswer + '"]');
+    const selectedLabel = selectedInput ? selectedInput.nextElementSibling : null;
+    const correctLabel = correctInput ? correctInput.nextElementSibling : null;
+
+    if (correctLabel) correctLabel.classList.add('practice-correct');
+    if (!isCorrect && selectedLabel) selectedLabel.classList.add('practice-incorrect');
+
+    const feedback = document.getElementById('practice-feedback-' + qId);
+    if (feedback) {
+        feedback.className = 'practice-feedback ' + (isCorrect ? 'is-correct' : 'is-incorrect');
+        feedback.innerHTML = isCorrect
+            ? '<i class="fa-solid fa-circle-check me-1"></i> Chinh xac.'
+            : '<i class="fa-solid fa-circle-xmark me-1"></i> Chua dung. Dap an dung: <strong>' + correctAnswer + '</strong>';
+    }
+}
+
+function clearPracticeState(qId) {
+    document.querySelectorAll('input[name="q_' + qId + '"] + .option-label').forEach(function (label) {
+        label.classList.remove('practice-correct', 'practice-incorrect');
+    });
+
+    const feedback = document.getElementById('practice-feedback-' + qId);
+    if (feedback) {
+        feedback.className = 'practice-feedback';
+        feedback.innerText = '';
+    }
+}
+
 /**
  * @param {number} orderNum - Số thứ tự của câu hỏi.
  */
@@ -139,6 +228,8 @@ function clearAnswer(qId, orderNum) {
     for (let i = 0; i < radios.length; i++) {
         radios[i].checked = false;
     }
+
+    clearPracticeState(qId);
 
     const gridItem = document.getElementById('grid-item-' + orderNum);
     if (gridItem) gridItem.classList.remove('answered');
@@ -313,7 +404,8 @@ function submitExamAjax() {
     fetch('/Exam/SubmitExam', {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
         },
         body: JSON.stringify(submission)
     })
@@ -355,6 +447,7 @@ function autoSubmitExam() {
 
 // Xuất các hàm cần dùng trong HTML (onclick, onchange) ra khỏi phạm vi module
 window.markAnswered = markAnswered;
+window.handleAnswerChange = handleAnswerChange;
 window.toggleFlag = toggleFlag;
 window.clearAnswer = clearAnswer;
 window.confirmSubmit = confirmSubmit;

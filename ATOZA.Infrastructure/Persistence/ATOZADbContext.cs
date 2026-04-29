@@ -1,5 +1,6 @@
 using ATOZA.Application.Abstractions.Persistence;
 using ATOZA.Domain.Entities;
+using ATOZA.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Reflection.Emit;
@@ -29,14 +30,27 @@ namespace ATOZA.Infrastructure.Persistence
                 e.HasKey(u => u.Id);
                 e.Property(u => u.Email).IsRequired().HasMaxLength(200);
                 e.Property(u => u.UserName).IsRequired().HasMaxLength(100);
+                e.Property(u => u.IsActive).HasDefaultValue(true);
                 e.HasIndex(u => u.Email).IsUnique();
                 e.HasIndex(u => u.UserName).IsUnique();
+                e.HasData(new User
+                {
+                    Id = -1,
+                    FullName = "System Admin",
+                    Email = "admin@atoza.vn",
+                    UserName = "admin",
+                    PasswordHash = "PBKDF2$100000$39Xdq+NQ2Yt9iv9N838zgw==$+JZYl/jpXSEclHFp1LCWzWwVSMI7gqNtQqX3045FutE=",
+                    Role = UserRole.Admin,
+                    IsActive = true,
+                    CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                });
             });
 
             // Exam
             modelBuilder.Entity<Exam>(e => {
                 e.ToTable("Exams");
                 e.HasKey(x => x.Id);
+                e.Property(x => x.IsPublic).HasDefaultValue(false);
                 e.HasOne(x => x.Creator).WithMany(u => u.Exams).HasForeignKey(x => x.CreatorId);
             });
 

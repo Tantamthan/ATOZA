@@ -1,4 +1,4 @@
-﻿<style>
+<style>
     /* Căn giữa tuyệt đối cho modal */
     .modal-backdrop {
         position: fixed;
@@ -117,6 +117,7 @@
     }
 </style>
 <div id="examModal" class="modal-backdrop">
+    @Html.AntiForgeryToken()
     <div id="examMetadataForm">
         <h2>Thông Tin</h2>
 
@@ -140,6 +141,13 @@
             </label>
         </div>
 
+        <div class="form-check mt-2 mb-2">
+            <input class="form-check-input" type="checkbox" id="examIsPublic">
+            <label class="form-check-label" for="examIsPublic">
+                Cho giao vien khac su dung de nay
+            </label>
+        </div>
+
 
 
         <div class="button-group">
@@ -156,10 +164,10 @@
 <div id="successModal" class="modal-backdrop" style="display: none; z-index: 1000;">
     <div style="background: white; padding: 30px; border-radius: 10px; text-align: center; max-width: 400px; width: 90%;">
         <div style="font-size: 3rem; margin-bottom: 10px;">🎉</div>
-        <h3 style="color: #28a745;">Lưu Đề Thi Thành Công!</h3>
-        <p>Đề thi của bạn đã được tạo.</p>
+        <h3 id="successTitle" style="color: #28a745;">Lưu Đề Thi Thành Công!</h3>
+        <p id="successMessage">Đề thi của bạn đã được tạo.</p>
 
-        <div class="input-group mb-3" style="display: flex; gap: 5px; margin-top: 20px;">
+        <div class="input-group mb-3" id="shareLinkGroup" style="display: flex; gap: 5px; margin-top: 20px;">
             <input type="text" id="shareLinkInput" class="form-control" readonly style="flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
             <button onclick="copyShareLink()" class="btn btn-primary" style="padding: 8px 15px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">
                 Copy
@@ -168,13 +176,18 @@
 
         <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: center;">
             <a id="goToExamBtn" href="#" class="btn btn-outline-primary" style="text-decoration: none; padding: 8px 20px; border: 1px solid #007bff; color: #007bff; border-radius: 4px;">Xem Đề</a>
-            <button onclick="location.reload()" style="padding: 8px 20px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">Đóng</button>
+            <button id="successCloseBtn" onclick="location.reload()" style="padding: 8px 20px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">Đóng</button>
         </div>
     </div>
 </div>
 
 
 <script>
+    // Detect edit mode từ hidden inputs
+    const _editExamIdEl = document.getElementById('editExamId');
+    const _isEditMode = !!_editExamIdEl;
+    const _editExamId = _isEditMode ? parseInt(_editExamIdEl.value) : 0;
+
     // Hàm hiển thị lỗi cụ thể
     function displayError(elementId, message) {
         const errorSpan = document.getElementById(elementId);
@@ -184,7 +197,31 @@
         }
     }
 
-    
+    // Pre-fill modal khi edit mode
+    document.addEventListener('DOMContentLoaded', function () {
+        if (!_isEditMode) return;
+
+        const titleEl = document.getElementById('editExamTitle');
+        const durationEl = document.getElementById('editExamDuration');
+        const modeEl = document.getElementById('editExamMode');
+        const publicEl = document.getElementById('editExamIsPublic');
+
+        if (titleEl) document.getElementById('examTitle').value = titleEl.value;
+        if (durationEl) document.getElementById('examDuration').value = durationEl.value;
+
+        if (modeEl) {
+            const mode = modeEl.value;
+            if (mode === 'Practice') {
+                const exerciseRadio = document.querySelector('input[name="examType"][value="exercise"]');
+                if (exerciseRadio) exerciseRadio.checked = true;
+            }
+        }
+
+        if (publicEl && publicEl.value === 'true') {
+            const publicCheckbox = document.getElementById('examIsPublic');
+            if (publicCheckbox) publicCheckbox.checked = true;
+        }
+    });
 
     async function saveExamData() {
         clearErrors(); // Xóa lỗi trước khi validation mới
@@ -193,6 +230,7 @@
         const title = document.getElementById('examTitle').value.trim();
         const durationInput = document.getElementById('examDuration').value;
         const selectedType = document.querySelector('input[name="examType"]:checked')?.value;
+        const isPublic = document.getElementById('examIsPublic')?.checked === true;
         let isValid = true;
 
         if (!title) {
@@ -211,6 +249,28 @@
             return;
         }
 
+        const invalidQuestions = finalExamData
+            .map((q, index) => {
+                const keys = (q.options || []).map(o => o.key);
+                const missing = ['A', 'B', 'C', 'D'].filter(key => !keys.includes(key));
+                const hasCorrect = !!q.correctKey;
+
+                if (missing.length === 0 && hasCorrect) {
+                    return null;
+                }
+
+                let reason = [];
+                if (missing.length > 0) reason.push(`thiếu ${missing.join(', ')}`);
+                if (!hasCorrect) reason.push('chưa có đáp án đúng');
+                return `Câu ${index + 1}: ${reason.join(' và ')}`;
+            })
+            .filter(Boolean);
+
+        if (invalidQuestions.length > 0) {
+            alert("⚠️ Vui lòng kiểm tra lại trước khi lưu:\n" + invalidQuestions.slice(0, 6).join('\n'));
+            return;
+        }
+
         if (!isValid) return;
 
 
@@ -220,40 +280,62 @@
 
         saveBtn.disabled = true;
         cancelBtn.disabled = true;
-        saveBtn.innerText = "Đang lưu...";
+        saveBtn.innerText = _isEditMode ? "Đang cập nhật..." : "Đang lưu...";
 
         // 3. PREPARE DATA - Chuẩn bị dữ liệu
         try {
-            const examPayload = {
-                Title: title,
-                DurationMinutes: duration,
-                ExamMode: selectedType === 'exam' ? 'Assessment' : 'Practice',
-                CreatorId: 1,
-                Description: "Đề thi được tạo từ hệ thống upload nhanh",
-                Questions: finalExamData.map((q, index) => {
-                    const getOpt = (key) => {
-                        const found = q.options?.find(o => o.key === key);
-                        // Trả về chuỗi rỗng thay vì null để đảm bảo kiểu dữ liệu
-                        return found ? found.content : '';
-                    };
+            const questionsPayload = finalExamData.map((q, index) => {
+                const getOpt = (key) => {
+                    const found = q.options?.find(o => o.key === key);
+                    // Trả về chuỗi rỗng thay vì null để đảm bảo kiểu dữ liệu
+                    return found ? found.content : '';
+                };
 
-                    return {
-                        OrderNumber: index + 1,
-                        Content: q.questionText || '',
-                        OptionA: getOpt('A'),
-                        OptionB: getOpt('B'),
-                        OptionC: getOpt('C'),
-                        OptionD: getOpt('D'),
-                        CorrectAnswer: q.correctKey || ''
-                    };
-                })
-            };
+                return {
+                    OrderNumber: index + 1,
+                    Content: q.questionText || '',
+                    OptionA: getOpt('A'),
+                    OptionB: getOpt('B'),
+                    OptionC: getOpt('C'),
+                    OptionD: getOpt('D'),
+                    CorrectAnswer: q.correctKey || ''
+                };
+            });
+
+            let apiUrl, examPayload;
+
+            if (_isEditMode) {
+                // Chế độ sửa đề
+                apiUrl = '/Exam/UpdateExamApi';
+                examPayload = {
+                    ExamId: _editExamId,
+                    Title: title,
+                    DurationMinutes: duration,
+                    ExamMode: selectedType === 'exam' ? 'Assessment' : 'Practice',
+                    IsPublic: isPublic,
+                    Description: "Đề thi được cập nhật từ hệ thống",
+                    Questions: questionsPayload
+                };
+            } else {
+                // Chế độ tạo mới
+                apiUrl = '/Exam/SaveExamApi';
+                examPayload = {
+                    Title: title,
+                    DurationMinutes: duration,
+                    ExamMode: selectedType === 'exam' ? 'Assessment' : 'Practice',
+                    IsPublic: isPublic,
+                    CreatorId: 1,
+                    Description: "Đề thi được tạo từ hệ thống upload nhanh",
+                    Questions: questionsPayload
+                };
+            }
 
             // 4. SEND REQUEST - Gửi dữ liệu lên server
-            const response = await fetch('/Exam/SaveExamApi', {
+            const response = await fetch(apiUrl, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
                 },
                 body: JSON.stringify(examPayload)
             });
@@ -276,12 +358,39 @@
             }
 
             if (response.ok) {
-                // Thành công (2xx) — hiển thị tổng số câu hỏi nếu server trả về
-                const total = result?.totalQuestions ?? null;
-                const msg = result?.message || "Lưu đề thi thành công!";
-                const displayMsg = total !== null ? `${msg}\nTổng câu hỏi: ${total}` : msg;
-                alert("✅ " + displayMsg);
-                closeModal();
+                if (_isEditMode) {
+                    // Edit mode: hiển thị success modal với thông tin cập nhật
+                    const successTitle = document.getElementById('successTitle');
+                    const successMessage = document.getElementById('successMessage');
+                    const shareLinkGroup = document.getElementById('shareLinkGroup');
+                    const successCloseBtn = document.getElementById('successCloseBtn');
+
+                    if (successTitle) successTitle.textContent = 'Cập Nhật Đề Thi Thành Công!';
+                    if (successMessage) successMessage.textContent = 'Đề thi của bạn đã được cập nhật.';
+                    if (shareLinkGroup) shareLinkGroup.style.display = 'none';
+                    if (successCloseBtn) {
+                        successCloseBtn.textContent = 'Về Dashboard';
+                        successCloseBtn.onclick = function () {
+                            window.location.href = '/Teacher/Index';
+                        };
+                    }
+
+                    const goToExamBtn = document.getElementById('goToExamBtn');
+                    if (goToExamBtn) {
+                        goToExamBtn.href = '/Exam/EditExam?id=' + _editExamId;
+                        goToExamBtn.textContent = 'Tiếp tục sửa';
+                    }
+
+                    closeModal();
+                    document.getElementById('successModal').style.display = 'flex';
+                } else {
+                    // Create mode: hiển thị success modal gốc
+                    const total = result?.totalQuestions ?? null;
+                    const msg = result?.message || "Lưu đề thi thành công!";
+                    const displayMsg = total !== null ? `${msg}\nTổng câu hỏi: ${total}` : msg;
+                    alert("✅ " + displayMsg);
+                    closeModal();
+                }
             } else {
                 // Lỗi từ server (4xx, 5xx)
 

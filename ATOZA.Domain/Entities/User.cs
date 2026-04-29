@@ -10,6 +10,7 @@ namespace ATOZA.Domain.Entities
         public string UserName { get; set; } = string.Empty;
         public string PasswordHash { get; set; } = string.Empty;
         public UserRole Role { get; set; } = UserRole.Student;
+        public bool IsActive { get; set; } = true;
 
         // Navigation properties
         public ICollection<Class> Classes { get; set; } = new List<Class>();
