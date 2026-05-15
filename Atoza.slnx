@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="ATOZA.Application/ATOZA.Application.csproj" />
+  <Project Path="ATOZA.Domain/ATOZA.Domain.csproj" />
+  <Project Path="ATOZA.Infrastructure/ATOZA.Infrastructure.csproj" />
+  <Project Path="ATOZA.Test/ATOZA.Test.csproj" Id="00853f4e-a95c-45fd-a6c9-3222f8c8522f" />
+  <Project Path="Atoza/Atoza_Web.csproj" />
+</Solution>

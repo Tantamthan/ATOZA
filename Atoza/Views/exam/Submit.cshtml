@@ -1,0 +1,36 @@
+@model ATOZA.Domain.Entities.Exam
+<div class="modal fade" id="confirmSubmitModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold">Nộp bài thi?</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <div class="mb-3">
+                    <i class="fa-solid fa-circle-check text-success" style="font-size: 3rem;"></i>
+                </div>
+                <p class="mb-1">Bạn đã hoàn thành 
+                    <b id="answered-count" class="text-primary">0</b>/<b id="total-count">@Model.Questions.Count()</b> câu hỏi.</p>
+                <p class="text-muted small">Thời gian còn lại: <span id="modal-time-left" class="fw-bold text-danger">--:--</span></p>
+                <p class="mb-0">Bạn có chắc chắn muốn kết thúc bài làm?</p>
+            </div>
+            <div class="modal-footer border-0 justify-content-center pt-0 pb-4">
+                <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">Quay lại</button>
+                <button type="button" class="btn btn-primary-custom px-4" onclick="submitExamAjax();">Nộp bài ngay</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal" id="loadingModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content border-0 bg-transparent shadow-none">
+            <div class="text-center">
+                <div class="spinner-border text-light" style="width: 3rem; height: 3rem;" role="status"></div>
+                <div class="mt-2 text-white fw-bold">Đang nộp bài...</div>
+            </div>
+        </div>
+    </div>
+</div>

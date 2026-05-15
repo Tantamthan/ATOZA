@@ -1,0 +1,34 @@
+@model ATOZA.Application.DTOs.Class.CreateClassDto
+
+@{
+    ViewBag.Title = "Tạo Lớp Mới";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow border-0">
+                <div class="card-header bg-white py-3">
+                    <h5 class="fw-bold mb-0 text-center">Tạo Lớp Học Mới</h5>
+                </div>
+                <div class="card-body p-4">
+                    @using (Html.BeginForm())
+                    {
+                        @Html.AntiForgeryToken()
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Tên lớp học</label>
+                            <input type="text" name="ClassName" class="form-control" placeholder="Ví dụ: Lớp 12A1 - Năm học 2024" required />
+                        </div>
+
+                        <div class="d-flex gap-2 justify-content-end mt-4">
+                            <a href="@Url.Action("ClassList")" class="btn btn-secondary">Hủy bỏ</a>
+                            <button type="submit" class="btn btn-warning text-white fw-bold px-4">Lưu lại</button>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

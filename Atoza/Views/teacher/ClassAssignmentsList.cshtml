@@ -1,0 +1,43 @@
+@model IEnumerable<ATOZA.Domain.Entities.ClassAssignment>
+
+@{
+    ViewBag.Title = "Danh sách bài tập - " + ViewBag.ClassName;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container py-4">
+    <h3 class="fw-bold mb-4">Bài tập đã giao: <span class="text-primary">@ViewBag.ClassName</span></h3>
+    <a href="@Url.Action("ClassDetail", "Teacher", new { id = ViewBag.ClassId })" class="btn btn-outline-secondary mb-3">
+        <i class="fa-solid fa-arrow-left"></i> Quay lại lớp
+    </a>
+
+    <table class="table table-hover shadow-sm">
+        <thead class="table-light">
+            <tr>
+                <th>Tên đề thi</th>
+                <th>Ngày giao</th>
+                <th>Hạn nộp</th>
+                <th>Thao tác</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td class="fw-bold">@(item.Exam?.Title ?? $"De thi #{item.ExamId}")</td>
+                    <td>@item.AssignedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                    <td>
+                        <span class="text-danger">@item.DueDate.ToString("dd/MM/yyyy HH:mm")</span>
+
+                    </td>
+                    <td>
+                        <a href="@Url.Action("ExamSubmissionReport", "Teacher", new { classId = item.ClassId, examId = item.ExamId })"
+                           class="btn btn-primary btn-sm">
+                            <i class="fa-solid fa-list-check"></i> Xem điểm & Tiến độ
+                        </a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

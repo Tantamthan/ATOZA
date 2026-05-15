@@ -1,0 +1,266 @@
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Tao de thi";
+}
+
+<style>
+    .upload-studio {
+        max-width: 1180px;
+        margin: 0 auto;
+        padding: 30px 20px 46px;
+        color: #25180f;
+    }
+
+    .upload-hero {
+        display: grid;
+        grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
+        gap: 18px;
+        align-items: stretch;
+    }
+
+    .upload-card,
+    .upload-sidecard {
+        border-radius: 26px;
+        border: 1px solid rgba(74, 53, 26, 0.12);
+        box-shadow: 0 22px 60px rgba(82, 58, 27, 0.08);
+        overflow: hidden;
+        background: #fffdfa;
+    }
+
+    .upload-card {
+        padding: 30px;
+        background: linear-gradient(135deg, #fff7ef 0%, #fffdfa 54%, #ffffff 100%);
+    }
+
+    .upload-card h1 {
+        margin: 8px 0 12px;
+        font-size: clamp(2rem, 4vw, 3.2rem);
+        line-height: 1.02;
+    }
+
+    .upload-card p,
+    .upload-sidecard p,
+    .upload-checklist li {
+        color: #6f6151;
+        line-height: 1.7;
+    }
+
+    .upload-eyebrow {
+        margin: 0;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        font-weight: 700;
+        font-size: 0.74rem;
+        color: #c75a22;
+    }
+
+    .upload-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 24px;
+    }
+
+    .upload-actions a {
+        text-decoration: none;
+        border-radius: 999px;
+        padding: 12px 18px;
+        font-weight: 700;
+    }
+
+    .upload-actions .primary {
+        background: linear-gradient(135deg, #d65f2a 0%, #f1884a 100%);
+        color: #fff;
+        box-shadow: 0 14px 32px rgba(214, 95, 42, 0.28);
+    }
+
+    .upload-actions .secondary {
+        color: #24180f;
+        background: rgba(255, 255, 255, 0.86);
+        border: 1px solid rgba(74, 53, 26, 0.12);
+    }
+
+    .upload-sidecard {
+        padding: 26px;
+        background: #fff;
+    }
+
+    .upload-sidecard h2 {
+        margin: 0 0 12px;
+        font-size: 1.2rem;
+    }
+
+    .upload-checklist {
+        margin: 16px 0 0;
+        padding-left: 18px;
+    }
+
+    .upload-drop-wrapper {
+        margin-top: 22px;
+    }
+
+    .drop-zone {
+        border: 2px dashed rgba(214, 95, 42, 0.34);
+        border-radius: 30px;
+        padding: 52px 24px;
+        text-align: center;
+        cursor: pointer;
+        transition: 0.25s ease;
+        background: linear-gradient(180deg, rgba(255, 249, 241, 0.95) 0%, rgba(255, 255, 255, 1) 100%);
+    }
+
+    .drop-zone:hover,
+    .drop-zone.dragover {
+        transform: translateY(-2px);
+        border-color: #d65f2a;
+        box-shadow: 0 20px 40px rgba(214, 95, 42, 0.12);
+    }
+
+    .drop-zone i {
+        display: inline-grid;
+        place-items: center;
+        width: 78px;
+        height: 78px;
+        margin-bottom: 18px;
+        border-radius: 50%;
+        font-size: 2rem;
+        color: #d65f2a;
+        background: rgba(214, 95, 42, 0.12);
+    }
+
+    .drop-zone h5 {
+        font-size: 1.25rem;
+        margin-bottom: 8px;
+    }
+
+    .drop-zone p {
+        margin: 0;
+    }
+
+    .format-pills {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 18px;
+    }
+
+    .format-pills span {
+        border-radius: 999px;
+        padding: 8px 12px;
+        background: #fff;
+        border: 1px solid rgba(74, 53, 26, 0.12);
+        font-weight: 700;
+        color: #785840;
+        font-size: 0.9rem;
+    }
+
+    .loading-overlay {
+        display: none;
+        margin-top: 16px;
+        border-radius: 18px;
+        padding: 18px;
+        text-align: center;
+        background: rgba(255, 248, 236, 0.95);
+        border: 1px solid rgba(214, 95, 42, 0.16);
+    }
+
+    @@media (max-width: 900px) {
+        .upload-hero {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<section class="upload-studio">
+    <div class="upload-hero">
+        <div class="upload-card">
+            <p class="upload-eyebrow">Atoza Upload Studio</p>
+            <h1>Nap file de thi vao Atoza nhanh hon va de sua hon</h1>
+            <p>
+                Tai file Word hoac PDF, he thong se trich noi dung, chuan hoa theo dang cau hoi trac nghiem,
+                sau do dua ban sang man xem truoc de soat lai dap an va luu de.
+            </p>
+
+            <div class="upload-actions">
+                <a class="primary" href="@Url.Action("CreateExam", "Exam")">Tu nhap noi dung</a>
+                <a class="secondary" href="@Url.Action("Index", "Teacher")">Ve bang dieu khien</a>
+            </div>
+        </div>
+
+        <aside class="upload-sidecard">
+            <h2>De parser hoat dong tot nhat</h2>
+            <p>Ban se co ket qua dep va it phai sua tay hon neu file theo cac quy tac nay:</p>
+            <ul class="upload-checklist">
+                <li>Moi cau bat dau bang "Cau 1", "Question 1" hoac "1."</li>
+                <li>Dap an nen o tung dong rieng: A., B., C., D.</li>
+                <li>Neu co the, danh dau dap an dung bang mau do hoac dong "Dap an: B"</li>
+                <li>PDF mot cot van on dinh hon PDF hai cot</li>
+            </ul>
+        </aside>
+    </div>
+
+    <div class="upload-drop-wrapper">
+        <form action="@Url.Action("ProcessExamFile", "Teacher")" method="post" enctype="multipart/form-data" id="uploadForm">
+            @Html.AntiForgeryToken()
+
+            <div class="drop-zone" id="dropZone">
+                <input type="file" name="fileUpload" id="fileInput" accept=".doc,.docx,.pdf" hidden />
+                <i class="fa-solid fa-cloud-arrow-up"></i>
+                <h5>Keo tha file vao day hoac bam de chon file</h5>
+                <p>He thong ho tro file Word va PDF de chuan hoa thanh de trac nghiem.</p>
+
+                <div class="format-pills">
+                    <span>.docx</span>
+                    <span>.pdf</span>
+                    <span>Cau hoi A-D</span>
+                </div>
+            </div>
+        </form>
+
+        <div class="loading-overlay" id="loading">
+            <div class="spinner-border text-warning" role="status"></div>
+            <p class="mt-2 mb-0">Dang xu ly file va chuyen sang man hinh xem truoc...</p>
+        </div>
+    </div>
+</section>
+
+<script>
+    function submitForm() {
+        dropZone.style.display = "none";
+        loading.style.display = "block";
+        uploadForm.submit();
+    }
+
+    const dropZone = document.getElementById("dropZone");
+    const fileInput = document.getElementById("fileInput");
+    const uploadForm = document.getElementById("uploadForm");
+    const loading = document.getElementById("loading");
+
+    dropZone.addEventListener("click", () => fileInput.click());
+
+    dropZone.addEventListener("dragover", (event) => {
+        event.preventDefault();
+        dropZone.classList.add("dragover");
+    });
+
+    dropZone.addEventListener("dragleave", () => {
+        dropZone.classList.remove("dragover");
+    });
+
+    dropZone.addEventListener("drop", (event) => {
+        event.preventDefault();
+        dropZone.classList.remove("dragover");
+
+        if (event.dataTransfer.files.length > 0) {
+            fileInput.files = event.dataTransfer.files;
+            submitForm();
+        }
+    });
+
+    fileInput.addEventListener("change", () => {
+        if (fileInput.files.length > 0) {
+            submitForm();
+        }
+    });
+</script>

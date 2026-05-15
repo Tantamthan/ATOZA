@@ -1,0 +1,89 @@
+@model ATOZA.Application.DTOs.Class.AssignExamDto
+
+@{
+    ViewBag.Title = "Giao bài tập";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow border-0">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0 fw-bold"><i class="fa-solid fa-bullhorn me-2"></i>Giao Bài Tập Cho Lớp</h4>
+                </div>
+                <div class="card-body p-4">
+                    @using (Html.BeginForm())
+                    {
+                        @Html.AntiForgeryToken()
+                        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Chọn Lớp học</label>
+                                @Html.DropDownList("ClassId", null, "--- Chọn lớp ---", new { @class = "form-select", required = "required" })
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Chọn Đề thi</label>
+                                @Html.DropDownList("ExamId", null, "--- Chọn đề thi ---", new { @class = "form-select", required = "required" })
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Mở đề từ lúc</label>
+                                <input type="text" id="AvailableFromLocal" class="form-control datetimepicker" required placeholder="Chọn thời gian" />
+                                <input type="hidden" id="AvailableFromUtc" name="availableFromUtc" />
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Hạn nộp bài</label>
+                                <input type="text" id="DueDateLocal" class="form-control datetimepicker" required placeholder="Chọn thời gian" />
+                                <input type="hidden" id="DueDateUtc" name="dueDateUtc" />
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end mt-4">
+                            <a href="@Url.Action("Index")" class="btn btn-secondary me-2">Hủy</a>
+                            <button type="submit" class="btn btn-primary fw-bold px-4">
+                                <i class="fa-solid fa-paper-plane me-2"></i>Giao ngay
+                            </button>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        flatpickr(".datetimepicker", {
+            enableTime: true,
+            dateFormat: "Y-m-d H:i"
+        });
+
+        const form = document.querySelector("form");
+        const availableLocal = document.getElementById("AvailableFromLocal");
+        const dueLocal = document.getElementById("DueDateLocal");
+        const availableUtc = document.getElementById("AvailableFromUtc");
+        const dueUtc = document.getElementById("DueDateUtc");
+
+        form.addEventListener("submit", function(event) {
+            const availableDate = availableLocal._flatpickr?.selectedDates?.[0];
+            const dueDate = dueLocal._flatpickr?.selectedDates?.[0];
+
+            if (!availableDate || !dueDate) {
+                event.preventDefault();
+                alert("Vui long chon du thoi gian mo de va han nop.");
+                return;
+            }
+
+            availableUtc.value = availableDate.toISOString();
+            dueUtc.value = dueDate.toISOString();
+        });
+    });
+</script>

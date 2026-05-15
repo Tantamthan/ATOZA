@@ -1,0 +1,429 @@
+<style>
+    /* Căn giữa tuyệt đối cho modal */
+    .modal-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 999;
+        display: none; /* Mặc định ẩn */
+    }
+
+    /* Định dạng Form */
+    #examMetadataForm {
+        background-color: #ffffff;
+        border-radius: 8px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+        padding: 25px;
+        max-width: 350px;
+        width: 90%;
+    }
+
+        #examMetadataForm h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 12px;
+            margin-top: 0;
+        }
+
+        #examMetadataForm input[type="text"],
+        #examMetadataForm input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+    /* Meta info row */
+    .meta-info {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+        font-size: 14px;
+        color: #444;
+    }
+
+    /* Style cho nhóm Radio Button */
+    .radio-group {
+        margin: 10px 0;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        font-size: 16px;
+        color: #333;
+    }
+
+        .radio-group label {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .radio-group input[type="radio"] {
+            margin: 0;
+            cursor: pointer;
+            transform: scale(1.2);
+        }
+
+    /* Nhóm nút bấm */
+    .button-group {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 20px;
+    }
+
+        .button-group button {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+            .button-group button:first-child {
+                background-color: #007bff;
+                color: white;
+            }
+
+                .button-group button:first-child:disabled {
+                    background-color: #6c757d;
+                    cursor: not-allowed;
+                    opacity: 0.6;
+                }
+
+    #cancelBtn {
+        background-color: #6c757d;
+        color: white;
+    }
+
+        #cancelBtn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+    .error-message {
+        display: block;
+        margin-top: 4px;
+    }
+</style>
+<div id="examModal" class="modal-backdrop">
+    @Html.AntiForgeryToken()
+    <div id="examMetadataForm">
+        <h2>Thông Tin</h2>
+
+        <div class="meta-info">
+            <div><strong>Tổng câu:</strong></div>
+            <div id="totalQuestionsCount">0</div>
+        </div>
+
+        <input type="text" id="examTitle" placeholder="Nhập tên bài...">
+        <span class="error-message" id="errorTitle" style="color: red; font-size: 12px; display: none;"></span>
+        <input type="number" id="examDuration" placeholder="Thời gian (phút)" min="1">
+        <span class="error-message" id="errorDuration" style="color: red; font-size: 12px; display: none;"></span>
+        <div class="radio-group">
+            <label>
+                <input type="radio" name="examType" value="exam" checked>
+                Đề thi
+            </label>
+            <label>
+                <input type="radio" name="examType" value="exercise">
+                Bài tập
+            </label>
+        </div>
+
+        <div class="form-check mt-2 mb-2">
+            <input class="form-check-input" type="checkbox" id="examIsPublic">
+            <label class="form-check-label" for="examIsPublic">
+                Cho giao vien khac su dung de nay
+            </label>
+        </div>
+
+
+
+        <div class="button-group">
+            <button id="saveBtn" onclick="saveExamData()">
+                Xác nhận
+            </button>
+            <button id="cancelBtn" onclick="closeModal()">
+                Hủy
+            </button>
+        </div>
+    </div>
+</div>
+
+<div id="successModal" class="modal-backdrop" style="display: none; z-index: 1000;">
+    <div style="background: white; padding: 30px; border-radius: 10px; text-align: center; max-width: 400px; width: 90%;">
+        <div style="font-size: 3rem; margin-bottom: 10px;">🎉</div>
+        <h3 id="successTitle" style="color: #28a745;">Lưu Đề Thi Thành Công!</h3>
+        <p id="successMessage">Đề thi của bạn đã được tạo.</p>
+
+        <div class="input-group mb-3" id="shareLinkGroup" style="display: flex; gap: 5px; margin-top: 20px;">
+            <input type="text" id="shareLinkInput" class="form-control" readonly style="flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+            <button onclick="copyShareLink()" class="btn btn-primary" style="padding: 8px 15px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                Copy
+            </button>
+        </div>
+
+        <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: center;">
+            <a id="goToExamBtn" href="#" class="btn btn-outline-primary" style="text-decoration: none; padding: 8px 20px; border: 1px solid #007bff; color: #007bff; border-radius: 4px;">Xem Đề</a>
+            <button id="successCloseBtn" onclick="location.reload()" style="padding: 8px 20px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">Đóng</button>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    // Detect edit mode từ hidden inputs
+    const _editExamIdEl = document.getElementById('editExamId');
+    const _isEditMode = !!_editExamIdEl;
+    const _editExamId = _isEditMode ? parseInt(_editExamIdEl.value) : 0;
+
+    // Hàm hiển thị lỗi cụ thể
+    function displayError(elementId, message) {
+        const errorSpan = document.getElementById(elementId);
+        if (errorSpan) {
+            errorSpan.innerText = message;
+            errorSpan.style.display = 'block';
+        }
+    }
+
+    // Pre-fill modal khi edit mode
+    document.addEventListener('DOMContentLoaded', function () {
+        if (!_isEditMode) return;
+
+        const titleEl = document.getElementById('editExamTitle');
+        const durationEl = document.getElementById('editExamDuration');
+        const modeEl = document.getElementById('editExamMode');
+        const publicEl = document.getElementById('editExamIsPublic');
+
+        if (titleEl) document.getElementById('examTitle').value = titleEl.value;
+        if (durationEl) document.getElementById('examDuration').value = durationEl.value;
+
+        if (modeEl) {
+            const mode = modeEl.value;
+            if (mode === 'Practice') {
+                const exerciseRadio = document.querySelector('input[name="examType"][value="exercise"]');
+                if (exerciseRadio) exerciseRadio.checked = true;
+            }
+        }
+
+        if (publicEl && publicEl.value === 'true') {
+            const publicCheckbox = document.getElementById('examIsPublic');
+            if (publicCheckbox) publicCheckbox.checked = true;
+        }
+    });
+
+    async function saveExamData() {
+        clearErrors(); // Xóa lỗi trước khi validation mới
+
+        // 1. VALIDATION - Kiểm tra dữ liệu đầu vào
+        const title = document.getElementById('examTitle').value.trim();
+        const durationInput = document.getElementById('examDuration').value;
+        const selectedType = document.querySelector('input[name="examType"]:checked')?.value;
+        const isPublic = document.getElementById('examIsPublic')?.checked === true;
+        let isValid = true;
+
+        if (!title) {
+            displayError('errorTitle', "⚠️ Vui lòng nhập tên bài!");
+            isValid = false;
+        }
+
+        const duration = parseInt(durationInput);
+        if (!durationInput || isNaN(duration) || duration <= 0) {
+            displayError('errorDuration', "⚠️ Thời gian không hợp lệ (lớn hơn 0)!");
+            isValid = false;
+        }
+
+        if (typeof finalExamData === 'undefined' || finalExamData.length === 0) {
+            alert("⚠️ Không có câu hỏi nào để lưu!");
+            return;
+        }
+
+        const invalidQuestions = finalExamData
+            .map((q, index) => {
+                const keys = (q.options || []).map(o => o.key);
+                const missing = ['A', 'B', 'C', 'D'].filter(key => !keys.includes(key));
+                const hasCorrect = !!q.correctKey;
+
+                if (missing.length === 0 && hasCorrect) {
+                    return null;
+                }
+
+                let reason = [];
+                if (missing.length > 0) reason.push(`thiếu ${missing.join(', ')}`);
+                if (!hasCorrect) reason.push('chưa có đáp án đúng');
+                return `Câu ${index + 1}: ${reason.join(' và ')}`;
+            })
+            .filter(Boolean);
+
+        if (invalidQuestions.length > 0) {
+            alert("⚠️ Vui lòng kiểm tra lại trước khi lưu:\n" + invalidQuestions.slice(0, 6).join('\n'));
+            return;
+        }
+
+        if (!isValid) return;
+
+
+        // 2. DISABLE BUTTONS - Vô hiệu hóa nút khi đang xử lý
+        const saveBtn = document.getElementById('saveBtn');
+        const cancelBtn = document.getElementById('cancelBtn');
+
+        saveBtn.disabled = true;
+        cancelBtn.disabled = true;
+        saveBtn.innerText = _isEditMode ? "Đang cập nhật..." : "Đang lưu...";
+
+        // 3. PREPARE DATA - Chuẩn bị dữ liệu
+        try {
+            const questionsPayload = finalExamData.map((q, index) => {
+                const getOpt = (key) => {
+                    const found = q.options?.find(o => o.key === key);
+                    // Trả về chuỗi rỗng thay vì null để đảm bảo kiểu dữ liệu
+                    return found ? found.content : '';
+                };
+
+                return {
+                    OrderNumber: index + 1,
+                    Content: q.questionText || '',
+                    OptionA: getOpt('A'),
+                    OptionB: getOpt('B'),
+                    OptionC: getOpt('C'),
+                    OptionD: getOpt('D'),
+                    CorrectAnswer: q.correctKey || ''
+                };
+            });
+
+            let apiUrl, examPayload;
+
+            if (_isEditMode) {
+                // Chế độ sửa đề
+                apiUrl = '/Exam/UpdateExamApi';
+                examPayload = {
+                    ExamId: _editExamId,
+                    Title: title,
+                    DurationMinutes: duration,
+                    ExamMode: selectedType === 'exam' ? 'Assessment' : 'Practice',
+                    IsPublic: isPublic,
+                    Description: "Đề thi được cập nhật từ hệ thống",
+                    Questions: questionsPayload
+                };
+            } else {
+                // Chế độ tạo mới
+                apiUrl = '/Exam/SaveExamApi';
+                examPayload = {
+                    Title: title,
+                    DurationMinutes: duration,
+                    ExamMode: selectedType === 'exam' ? 'Assessment' : 'Practice',
+                    IsPublic: isPublic,
+                    CreatorId: 1,
+                    Description: "Đề thi được tạo từ hệ thống upload nhanh",
+                    Questions: questionsPayload
+                };
+            }
+
+            // 4. SEND REQUEST - Gửi dữ liệu lên server
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                },
+                body: JSON.stringify(examPayload)
+            });
+
+            // 5. HANDLE RESPONSE - Xử lý phản hồi
+            const contentType = response.headers.get("content-type");
+
+            // 💡 TỐI ƯU BẮT LỖI: Luôn cố gắng đọc JSON, nhưng nếu lỗi thì đọc Text
+            let result;
+            let finalMessage = "Không thể lưu đề thi do lỗi server không xác định.";
+
+            if (contentType && contentType.includes("application/json")) {
+                // Thử đọc JSON
+                try {
+                    result = await response.json();
+                } catch (e) {
+                    // Lỗi phân tích JSON
+                    result = null;
+                }
+            }
+
+            if (response.ok) {
+                if (_isEditMode) {
+                    // Edit mode: hiển thị success modal với thông tin cập nhật
+                    const successTitle = document.getElementById('successTitle');
+                    const successMessage = document.getElementById('successMessage');
+                    const shareLinkGroup = document.getElementById('shareLinkGroup');
+                    const successCloseBtn = document.getElementById('successCloseBtn');
+
+                    if (successTitle) successTitle.textContent = 'Cập Nhật Đề Thi Thành Công!';
+                    if (successMessage) successMessage.textContent = 'Đề thi của bạn đã được cập nhật.';
+                    if (shareLinkGroup) shareLinkGroup.style.display = 'none';
+                    if (successCloseBtn) {
+                        successCloseBtn.textContent = 'Về Dashboard';
+                        successCloseBtn.onclick = function () {
+                            window.location.href = '/Teacher/Index';
+                        };
+                    }
+
+                    const goToExamBtn = document.getElementById('goToExamBtn');
+                    if (goToExamBtn) {
+                        goToExamBtn.href = '/Exam/EditExam?id=' + _editExamId;
+                        goToExamBtn.textContent = 'Tiếp tục sửa';
+                    }
+
+                    closeModal();
+                    document.getElementById('successModal').style.display = 'flex';
+                } else {
+                    // Create mode: hiển thị success modal gốc
+                    const total = result?.totalQuestions ?? null;
+                    const msg = result?.message || "Lưu đề thi thành công!";
+                    const displayMsg = total !== null ? `${msg}\nTổng câu hỏi: ${total}` : msg;
+                    alert("✅ " + displayMsg);
+                    closeModal();
+                }
+            } else {
+                // Lỗi từ server (4xx, 5xx)
+
+                if (result && result.message) {
+                    // Server trả về JSON và có message (như lỗi DB bạn đã cài đặt)
+                    finalMessage = result.message;
+                    console.error("Server error (JSON):", result);
+                } else {
+                    // Server trả về lỗi không phải JSON (ví dụ: lỗi IIS/ASP.NET 404, Request Length Exceeded)
+                    const errorText = await response.text();
+                    finalMessage = `❌ Lỗi HTTP ${response.status} (${response.statusText}). Vui lòng kiểm tra lại cấu hình web.config (Max Request Length, Max JSON Length).`;
+                    console.error("Non-JSON/Unknown Server error:", errorText.substring(0, 500)); // Log 500 ký tự đầu
+                }
+
+                alert(finalMessage);
+            }
+
+        } catch (error) {
+            // 6. HANDLE ERRORS - Xử lý lỗi kết nối, cú pháp
+            console.error("Error saving exam:", error);
+
+            if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                alert("🚨 Lỗi kết nối mạng! Vui lòng kiểm tra internet và thử lại.");
+            } else if (error instanceof SyntaxError) {
+                alert("🚨 Lỗi phân tích dữ liệu từ server (JSON không hợp lệ).");
+            } else {
+                alert("🚨 Đã xảy ra lỗi không xác định: " + error.message);
+            }
+        } finally {
+            // 7. RE-ENABLE BUTTONS - Kích hoạt lại nút (luôn chạy)
+            saveBtn.disabled = false;
+            cancelBtn.disabled = false;
+            saveBtn.innerText = "Xác nhận";
+        }
+    }
+</script>

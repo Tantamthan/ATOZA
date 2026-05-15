@@ -1,0 +1,720 @@
+﻿Câu 1: Thủ đô của Việt Nam là gì?
+A. Hồ Chí Minh
+*B. Hà Nội
+C. Đà Nẵng
+D. Cần Thơ
+
+Câu 2: Công thức hóa học của nước là?
+A. HO2
+B. H2O2
+*C. H2O
+D. OH
+
+Câu 3: Ai là người đặt chân lên mặt trăng đầu tiên?
+*A. Neil Armstrong
+B. Buzz Aldrin
+C. Yuri Gagarin
+D. Phạm Tuân
+
+Câu 4: Ngôn ngữ lập trình phổ biến nhất cho phát triển web frontend là gì?
+A. Python
+B. Java
+*C. JavaScript
+D. C#
+
+Câu 5: Nguyên tố nào có ký hiệu hóa học là O?
+A. Vàng
+*B. Oxy
+C. Sắt
+D. Bạc
+
+Câu 6: Trái Đất quay quanh trục của nó mất bao lâu?
+*A. Khoảng 24 giờ
+B. Khoảng 365 ngày
+C. Khoảng 12 giờ
+D. Khoảng 30 ngày
+
+Câu 7: Đơn vị tiền tệ của Nhật Bản là gì?
+A. Won
+*B. Yên
+C. Nhân dân tệ
+D. Euro
+
+Câu 8: Tác phẩm "Truyện Kiều" do ai sáng tác?
+A. Hồ Chí Minh
+B. Nguyễn Trãi
+*C. Nguyễn Du
+D. Trần Hưng Đạo
+
+Câu 9: Màu sắc nào được tạo ra khi trộn màu xanh lam và màu vàng?
+A. Đỏ
+B. Tím
+C. Nâu
+*D. Xanh lá cây
+
+Câu 10: Bộ não của máy tính (Computer's brain) là gì?
+A. RAM
+*B. CPU
+C. GPU
+D. Hard Drive
+
+Câu 11: Tốc độ ánh sáng trong chân không là bao nhiêu?
+A. 300 km/s
+B. 30.000 km/s
+C. 3.000.000 km/s
+*D. 300.000 km/s
+
+Câu 12: Đơn vị đo cường độ dòng điện là gì?
+A. Volt
+B. Ohm
+*C. Ampere
+D. Watt
+
+Câu 13: Thành phố New York thuộc bang nào của Mỹ?
+*A. New York
+B. California
+C. Texas
+D. Florida
+
+Câu 14: Ai là người phát minh ra bóng đèn sợi đốt?
+A. Nikola Tesla
+*B. Thomas Edison
+C. Alexander Graham Bell
+D. Albert Einstein
+
+Câu 15: Năm nhuận có bao nhiêu ngày?
+A. 365
+*B. 366
+C. 364
+D. 367
+
+Câu 16: Kim loại nào nhẹ nhất?
+A. Sắt
+B. Đồng
+*C. Lithium
+D. Nhôm
+
+Câu 17: Công thức tính lực (F) trong Vật lý (Định luật II Newton) là gì?
+A. E=mc2
+B. V=IR
+*C. F=ma
+D. P=IV
+
+Câu 18: Lục địa lớn nhất thế giới là gì?
+*A. Châu Á
+B. Châu Âu
+C. Châu Phi
+D. Châu Mỹ
+
+Câu 19: Loài chim không biết bay lớn nhất thế giới là gì?
+A. Chim cánh cụt
+B. Đà điểu Emu
+*C. Đà điểu châu Phi
+D. Chim Kiwi
+
+Câu 20: Thủ đô của Pháp là gì?
+A. London
+*B. Paris
+C. Berlin
+D. Rome
+
+Câu 21: Quốc gia nào có dân số đông nhất thế giới (tính đến 2024)?
+A. Trung Quốc
+*B. Ấn Độ
+C. Mỹ
+D. Indonesia
+
+Câu 22: Hiện tượng thiên nhiên nào gây ra cầu vồng?
+A. Phản xạ ánh sáng
+*B. Khúc xạ và phản xạ ánh sáng
+C. Giao thoa ánh sáng
+D. Nhiễu xạ ánh sáng
+
+Câu 23: Dây đàn guitar làm bằng chất liệu gì tạo ra âm thanh?
+*A. Rung động
+B. Ma sát
+C. Sóng điện từ
+D. Sóng vô tuyến
+
+Câu 24: Thiết bị nào dùng để đo độ ẩm không khí?
+A. Nhiệt kế
+*B. Ẩm kế (Hygrometer)
+C. Áp kế
+D. Phong vũ biểu
+
+Câu 25: Trong CSS, thuộc tính nào dùng để thay đổi màu chữ?
+A. background-color
+*B. color
+C. font-color
+D. text-style
+
+Câu 26: Phần mềm phổ biến nhất để chỉnh sửa ảnh chuyên nghiệp là gì?
+A. Microsoft Paint
+B. GIMP
+C. Canva
+*D. Adobe Photoshop
+
+Câu 27: Khoảng cách từ Trái Đất đến Mặt Trời gọi là gì?
+A. Chu vi
+*B. Đơn vị Thiên văn (AU)
+C. Năm ánh sáng
+D. Đơn vị Parsec
+
+Câu 28: Bộ xương người trưởng thành có khoảng bao nhiêu chiếc xương?
+A. 150
+*B. 206
+C. 300
+D. 100
+
+Câu 29: Bộ phim "Ký sinh trùng" (Parasite) của nước nào sản xuất?
+A. Trung Quốc
+B. Nhật Bản
+*C. Hàn Quốc
+D. Việt Nam
+
+Câu 30: Nước nào nổi tiếng với món sushi?
+A. Trung Quốc
+*B. Nhật Bản
+C. Thái Lan
+D. Việt Nam
+
+Câu 31: Kênh đào nào nối Địa Trung Hải và Biển Đỏ?
+A. Kênh đào Panama
+*B. Kênh đào Suez
+C. Kênh đào Corinth
+D. Kênh đào Kiel
+
+Câu 32: Số Pi (pi) được làm tròn đến hai chữ số thập phân là bao nhiêu?
+A. 3.10
+B. 3.15
+*C. 3.14
+D. 3.16
+
+Câu 33: Tên gọi khác của bệnh "Cảm lạnh" thông thường là gì?
+A. Cúm
+B. Sốt xuất huyết
+*C. Nhiễm trùng đường hô hấp trên
+D. Viêm phổi
+
+Câu 34: Chất khí nào chiếm phần lớn trong không khí Trái Đất?
+A. Oxy
+B. Carbon Dioxide
+*C. Nitơ
+D. Argon
+
+Câu 35: Lò vi sóng hoạt động dựa trên nguyên lý sóng nào?
+A. Sóng vô tuyến
+*B. Sóng cực ngắn (Microwave)
+C. Sóng âm
+D. Sóng hồng ngoại
+
+Câu 36: Tên gọi cũ của thành phố Hồ Chí Minh là gì?
+A. Thăng Long
+B. Huế
+C. Gia Định
+*D. Sài Gòn
+
+Câu 37: Nhà khoa học nào đã phát minh ra thuyết Tương đối?
+A. Isaac Newton
+*B. Albert Einstein
+C. Galileo Galilei
+D. Stephen Hawking
+
+Câu 38: Mạng xã hội nào có biểu tượng là con chim màu xanh?
+A. Facebook
+B. Instagram
+*C. X (Twitter cũ)
+D. LinkedIn
+
+Câu 39: Bộ nhớ truy cập ngẫu nhiên của máy tính là gì?
+A. CPU
+B. ROM
+*C. RAM
+D. SSD
+
+Câu 40: Vị thần nào là thần biển trong thần thoại Hy Lạp?
+A. Zeus
+B. Hades
+*C. Poseidon
+D. Apollo
+
+Câu 41: Công ty nào đã phát triển hệ điều hành Android?
+A. Apple
+*B. Google
+C. Microsoft
+D. Samsung
+
+Câu 42: Món ăn truyền thống của Italia là gì?
+*A. Pizza
+B. Taco
+C. Sushi
+D. Kimchi
+
+Câu 43: Hồ nước ngọt lớn nhất thế giới theo diện tích là hồ nào?
+A. Hồ Victoria
+*B. Hồ Superior
+C. Hồ Baikal
+D. Hồ Caspian
+
+Câu 44: Ai là người viết vở kịch "Romeo và Juliet"?
+A. Charles Dickens
+B. Jane Austen
+*C. William Shakespeare
+D. Mark Twain
+
+Câu 45: Lực nào giữ chúng ta đứng vững trên Trái Đất?
+A. Lực đẩy
+B. Lực ma sát
+*C. Lực hấp dẫn
+D. Lực ly tâm
+
+Câu 46: Đảo lớn nhất thế giới là đảo nào?
+A. New Guinea
+B. Borneo
+*C. Greenland
+D. Madagascar
+
+Câu 47: Loài vật nào được coi là biểu tượng của Úc?
+*A. Kangaroo
+B. Gấu trúc
+C. Voi
+D. Hổ
+
+Câu 48: Loại rượu nào được làm từ nho?
+A. Bia
+B. Vodka
+*C. Vang (Wine)
+D. Sake
+
+Câu 49: Trụ sở chính của Liên Hợp Quốc (UN) đặt ở đâu?
+A. Geneva
+*B. New York
+C. Paris
+D. Vienna
+
+Câu 50: Vận tốc âm thanh trong không khí khoảng bao nhiêu m/s?
+A. 100 m/s
+B. 1000 m/s
+*C. 343 m/s
+D. 500 m/s
+
+Câu 51: Chất liệu cơ bản tạo nên một cây bút chì là gì?
+A. Than đá
+B. Đồng
+*C. Graphite
+D. Bột màu
+
+Câu 52: Khí nhà kính nào có đóng góp lớn nhất vào hiện tượng nóng lên toàn cầu?
+A. Methane (CH4)
+*B. Carbon Dioxide (CO2)
+C. Nitrous Oxide (N2O)
+D. CFCs
+
+Câu 53: Môn thể thao nào sử dụng gậy và quả bóng nhỏ trên sân cỏ rộng?
+A. Hockey
+*B. Golf
+C. Tennis
+D. Baseball
+
+Câu 54: Thành phố nào được gọi là "Thành phố ánh sáng"?
+A. London
+B. Rome
+*C. Paris
+D. Tokyo
+
+Câu 55: Ai là người phát minh ra điện thoại?
+*A. Alexander Graham Bell
+B. Thomas Edison
+C. Guglielmo Marconi
+D. Nikola Tesla
+
+Câu 56: Trong tin học, HTML là viết tắt của từ gì?
+A. High Tech Markup Language
+*B. HyperText Markup Language
+C. Home Tool Markup Language
+D. Hyperlinks and Text Markup Language
+
+Câu 57: Vành đai nào nổi tiếng quanh sao Thổ?
+A. Vành đai Trojan
+B. Vành đai Asteroid
+*C. Vành đai băng đá
+D. Vành đai Kuiper
+
+Câu 58: Môn học nghiên cứu về tiền tệ và thị trường là gì?
+A. Lịch sử
+*B. Kinh tế học
+C. Xã hội học
+D. Triết học
+
+Câu 59: Cung hoàng đạo nào ứng với tháng 3 và tháng 4?
+A. Bảo Bình
+B. Song Tử
+*C. Bạch Dương
+D. Sư Tử
+
+Câu 60: Loài động vật có vú nào biết bay?
+A. Chim
+*B. Dơi
+C. Chuột túi
+D. Sóc
+
+Câu 61: Kim tự tháp Giza nằm ở quốc gia nào?
+A. Iraq
+*B. Ai Cập
+C. Mexico
+D. Hy Lạp
+
+Câu 62: Nhà soạn nhạc cổ điển nổi tiếng người Đức là ai?
+A. Mozart
+B. Vivaldi
+*C. Beethoven
+D. Chopin
+
+Câu 63: Hệ thống sông ngòi lớn nhất thế giới về lưu lượng nước là gì?
+A. Sông Nile
+*B. Sông Amazon
+C. Sông Dương Tử
+D. Sông Mississippi
+
+Câu 64: Mạng lưới toàn cầu kết nối các máy tính là gì?
+A. LAN
+B. WAN
+*C. Internet
+D. Intranet
+
+Câu 65: Hiện tượng "Thủy triều" do tác động của thiên thể nào?
+A. Mặt Trời
+B. Sao Kim
+*C. Mặt Trăng
+D. Sao Hỏa
+
+Câu 66: Đơn vị đo góc phẳng là gì?
+A. Mét
+*B. Độ (Degree) hoặc Radian
+C. Kilogram
+D. Giây
+
+Câu 67: Vùng đất nào có băng bao phủ vĩnh viễn?
+*A. Nam Cực (Antarctica)
+B. Bắc Cực (Arctic)
+C. Greenland
+D. Siberia
+
+Câu 68: Món ăn quốc hồn quốc túy của Mexico là gì?
+A. Paella
+*B. Taco
+C. Curry
+D. Pho
+
+Câu 69: Ngày Quốc tế Lao động là ngày nào?
+A. 8 tháng 3
+*B. 1 tháng 5
+C. 20 tháng 10
+D. 2 tháng 9
+
+Câu 70: Ngôn ngữ chính thức của Brazil là gì?
+A. Tây Ban Nha
+*B. Bồ Đào Nha
+C. Anh
+D. Pháp
+
+Câu 71: Loại cá nào không phải là cá mà là động vật có vú?
+*A. Cá voi
+B. Cá mập
+C. Cá hồi
+D. Cá chép
+
+Câu 72: Vật chất được tạo thành từ những hạt cơ bản nào?
+A. Electron
+B. Proton
+C. Neutron
+*D. Tất cả các đáp án trên
+
+Câu 73: Bức tranh "Mona Lisa" hiện đang được trưng bày ở đâu?
+A. Bảo tàng Vatican
+B. Bảo tàng Metropolitan
+*C. Bảo tàng Louvre
+D. Bảo tàng Anh
+
+Câu 74: Quỹ đạo của các hành tinh quanh Mặt Trời có hình dạng gì?
+*A. Hình Elip (Oval)
+B. Hình tròn
+C. Hình vuông
+D. Hình tam giác
+
+Câu 75: Thủ đô của Hàn Quốc là gì?
+A. Busan
+B. Incheon
+*C. Seoul
+D. Daegu
+
+Câu 76: Thiết bị nào biến đổi năng lượng điện thành năng lượng cơ học?
+*A. Động cơ điện (Motor)
+B. Máy phát điện
+C. Máy biến áp
+D. Pin
+
+Câu 77: Ngày Tết Nguyên Đán thường rơi vào tháng nào?
+A. Tháng 11 hoặc 12 dương lịch
+B. Tháng 12 hoặc 1 dương lịch
+*C. Tháng 1 hoặc 2 dương lịch
+D. Tháng 3 hoặc 4 dương lịch
+
+Câu 78: Đồ uống nào được ủ từ lúa mạch?
+A. Rượu vang
+*B. Bia
+C. Nước trái cây
+D. Trà
+
+Câu 79: Trong lập trình, "bug" nghĩa là gì?
+A. Một tính năng mới
+*B. Lỗi trong chương trình
+C. Mã nguồn
+D. Dữ liệu
+
+Câu 80: Đỉnh núi cao nhất trên thế giới là gì?
+A. K2
+B. Kangchenjunga
+*C. Everest
+D. Lhotse
+
+Câu 81: Vật chất tồn tại ở mấy trạng thái cơ bản?
+A. 2
+B. 3
+*C. 4 (Rắn, Lỏng, Khí, Plasma)
+D. 5
+
+Câu 82: Trong SQL, lệnh nào dùng để lấy dữ liệu từ cơ sở dữ liệu?
+A. INSERT
+*B. SELECT
+C. UPDATE
+D. DELETE
+
+Câu 83: Nhóm nhạc The Beatles đến từ quốc gia nào?
+A. Mỹ
+*B. Anh
+C. Canada
+D. Úc
+
+Câu 84: Hệ điều hành máy tính phổ biến nhất thế giới hiện nay là gì?
+A. macOS
+B. Linux
+*C. Windows
+D. Android
+
+Câu 85: Trụ sở chính của công ty Microsoft đặt ở bang nào của Mỹ?
+*A. Washington
+B. California
+C. Texas
+D. Florida
+
+Câu 86: Loại tàu nào được sử dụng để thám hiểm không gian?
+A. Tàu ngầm
+B. Máy bay
+*C. Tàu vũ trụ (Spaceship)
+D. Tàu thủy
+
+Câu 87: Ai là người phát hiện ra Luật Hấp dẫn (Law of Gravitation)?
+A. Galileo Galilei
+B. Albert Einstein
+*C. Isaac Newton
+D. Nikola Tesla
+
+Câu 88: Hành tinh nào được mệnh danh là "Hành tinh Đỏ"?
+A. Sao Kim
+*B. Sao Hỏa
+C. Sao Thủy
+D. Sao Mộc
+
+Câu 89: Trái cây nào là nguyên liệu chính để làm rượu vang đỏ?
+A. Táo
+*B. Nho
+C. Cam
+D. Dứa
+
+Câu 90: Số 0 (zero) được phát minh bởi nền văn minh nào?
+A. Hy Lạp
+B. La Mã
+*C. Ấn Độ
+D. Trung Quốc
+
+Câu 91: Bộ môn hóa học nghiên cứu về các hợp chất của Cacbon là gì?
+A. Hóa vô cơ
+*B. Hóa hữu cơ
+C. Hóa phân tích
+D. Hóa lý
+
+Câu 92: Bức tường Berlin nằm ở quốc gia nào?
+A. Pháp
+*B. Đức
+C. Ba Lan
+D. Áo
+
+Câu 93: Khái niệm "Vòng tròn luẩn quẩn" trong kinh tế học là gì?
+A. Tăng trưởng kinh tế bền vững
+*B. Vấn đề nghèo đói tự duy trì
+C. Lạm phát
+D. Thất nghiệp
+
+Câu 94: Cơ quan nào trong cơ thể người có chức năng bơm máu?
+A. Phổi
+B. Gan
+*C. Tim
+D. Thận
+
+Câu 95: Thành phố nào là thủ đô của Úc?
+*A. Canberra
+B. Sydney
+C. Melbourne
+D. Brisbane
+
+Câu 96: Khoa học nghiên cứu về sự sống là gì?
+*A. Sinh học (Biology)
+B. Vật lý (Physics)
+C. Hóa học (Chemistry)
+D. Thiên văn học (Astronomy)
+
+Câu 97: Tên gọi cũ của Istanbul (Thổ Nhĩ Kỳ) là gì?
+A. Alexandria
+B. Athens
+*C. Constantinople
+D. Ephesus
+
+Câu 98: Loại hình kiến trúc nào nổi tiếng với các cột Doric, Ionic, Corinthian?
+A. Kiến trúc La Mã
+*B. Kiến trúc Hy Lạp cổ đại
+C. Kiến trúc Gothic
+D. Kiến trúc Baroque
+
+Câu 99: Trong Word, phím tắt để sao chép (Copy) là gì?
+A. Ctrl+X
+*B. Ctrl+C
+C. Ctrl+V
+D. Ctrl+Z
+
+Câu 100: Độ pH của nước tinh khiết (trung tính) là bao nhiêu?
+A. 5.5
+B. 6.0
+*C. 7.0
+D. 8.0
+
+Câu 101: Tên gọi khác của Vitamin C là gì?
+*A. Axit Ascorbic
+B. Thiamin
+C. Riboflavin
+D. Axit Folic
+
+Câu 102: Lực nào cản trở chuyển động và sinh ra nhiệt?
+A. Lực hấp dẫn
+B. Lực đàn hồi
+*C. Lực ma sát
+D. Lực đẩy Archimedes
+
+Câu 103: Quốc gia nào có Lãnh thổ rộng lớn nhất thế giới?
+A. Canada
+B. Trung Quốc
+*C. Nga
+D. Mỹ
+
+Câu 104: Ai là người phát minh ra bảng tuần hoàn các nguyên tố hóa học?
+A. Marie Curie
+*B. Dmitri Mendeleev
+C. John Dalton
+D. Antoine Lavoisier
+
+Câu 105: Môn thể thao nào nổi tiếng với các cú Home Run?
+A. Bóng đá
+*B. Bóng chày (Baseball)
+C. Bóng bầu dục
+D. Bóng rổ
+
+Câu 106: Loài cây nào là biểu tượng của Canada?
+A. Cây sồi
+B. Cây bạch dương
+*C. Cây phong (Maple)
+D. Cây thông
+
+Câu 107: Loại vật liệu nào dẫn điện tốt nhất?
+*A. Bạc
+B. Đồng
+C. Vàng
+D. Nhôm
+
+Câu 108: Bộ phim hoạt hình đầu tiên của Walt Disney có tên là gì?
+A. Bạch Tuyết và bảy chú lùn
+B. Pinocchio
+*C. Steamboat Willie
+D. Bambi
+
+Câu 109: Trong HTTP, mã trạng thái nào biểu thị "OK" (Thành công)?
+A. 301
+B. 404
+*C. 200
+D. 500
+
+Câu 110: Ai là người đứng đầu chính phủ Nhật Bản?
+A. Tổng thống
+*B. Thủ tướng (Prime Minister)
+C. Hoàng đế
+D. Quốc vương
+
+Câu 111: Tên của đại dịch toàn cầu xảy ra vào năm 1918 là gì?
+*A. Cúm Tây Ban Nha
+B. Dịch hạch
+C. Sars
+D. Ebola
+
+Câu 112: Hành tinh nào gần Mặt Trời nhất?
+*A. Sao Thủy
+B. Sao Kim
+C. Trái Đất
+D. Sao Hỏa
+
+Câu 113: Công trình "Đấu trường La Mã" (Colosseum) nằm ở đâu?
+A. Paris
+B. Berlin
+*C. Rome
+D. Madrid
+
+Câu 114: Loại nhạc cụ nào có phím đen và trắng?
+A. Violin
+B. Trumpet
+*C. Piano
+D. Guitar
+
+Câu 115: Ngôn ngữ lập trình nào được sử dụng rộng rãi trong khoa học dữ liệu và trí tuệ nhân tạo?
+A. Java
+*B. Python
+C. C++
+D. Ruby
+
+Câu 116: Trong cờ vua, quân nào có thể đi theo hình chữ L?
+A. Tượng
+*B. Mã
+C. Hậu
+D. Xe
+
+Câu 117: Sông Nile chảy qua quốc gia nào?
+A. Nigeria
+*B. Ai Cập
+C. Ethiopia
+D. Kenya
+
+Câu 118: Hiện tượng "Nguyệt thực" xảy ra khi nào?
+A. Mặt Trời che khuất Trái Đất
+B. Mặt Trăng che khuất Mặt Trời
+*C. Trái Đất nằm giữa Mặt Trời và Mặt Trăng
+D. Mặt Trời, Trái Đất, Mặt Trăng thẳng hàng
+
+Câu 119: Quốc gia nào nổi tiếng với đồng hồ và sô cô la?
+A. Bỉ
+B. Áo
+*C. Thụy Sĩ
+D. Hà Lan
+
+Câu 120: Bộ phận nào của cây hấp thụ ánh sáng để quang hợp?
+*A. Lá cây
+B. Rễ cây
+C. Thân cây
+D. Hoa
+

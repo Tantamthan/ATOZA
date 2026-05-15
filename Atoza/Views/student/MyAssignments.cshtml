@@ -1,0 +1,56 @@
+@model IEnumerable<ATOZA.Domain.Entities.Submission>
+@{
+    ViewBag.Title = "Lịch sử làm bài";
+    Layout = "~/Views/Shared/_Layout.cshtml"; // Hoặc layout bạn đang dùng
+}
+
+<div class="container mt-4">
+    <h2 class="mb-4">📄 Lịch sử làm bài của tôi</h2>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info">Bạn chưa làm bài kiểm tra nào.</div>
+    }
+    else
+    {
+        <div class="card shadow-sm">
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Tên bài thi</th>
+                            <th>Ngày nộp</th>
+                            <th>Điểm số</th>
+                            <th>Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="fw-bold">@item.Exam.Title</td>
+                                <td>@item.SubmitTime.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>
+                                    @if (item.Score >= 5)
+                                    {
+                                        <span class="badge bg-success fs-6">@item.Score điểm</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger fs-6">@item.Score điểm</span>
+                                    }
+                                </td>
+                                <td>
+                                    <a href="@Url.Action("ReviewExam", "Student", new { id = item.ExamId })"
+                                       class="btn btn-sm btn-outline-primary">
+                                        <i class="fa-solid fa-eye"></i> Xem chi tiết
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+</div>

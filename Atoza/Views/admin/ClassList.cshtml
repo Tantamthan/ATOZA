@@ -1,0 +1,40 @@
+@model List<ATOZA.Application.DTOs.ClassOverviewDto>
+@{
+    ViewData["Title"] = "Lop hoc";
+}
+
+<section class="admin-shell">
+    <div class="admin-header">
+        <div>
+            <h1>Lop hoc</h1>
+            <p>@Model.Count lop</p>
+        </div>
+        <a class="btn btn-outline-primary" href="@Url.Action("Index", "Admin")"><i class="fa-solid fa-gauge me-2"></i>Dashboard</a>
+    </div>
+
+    <div class="admin-table-wrap">
+        <table class="table align-middle admin-table">
+            <thead>
+                <tr>
+                    <th>Ten lop</th>
+                    <th>Giao vien</th>
+                    <th>Hoc sinh</th>
+                    <th>Bai giao</th>
+                    <th>Ngay tao</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td class="fw-semibold">@item.ClassName</td>
+                        <td>@item.TeacherName</td>
+                        <td>@item.StudentCount</td>
+                        <td>@item.AssignmentCount</td>
+                        <td>@item.CreatedAt.ToString("dd/MM/yyyy")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</section>

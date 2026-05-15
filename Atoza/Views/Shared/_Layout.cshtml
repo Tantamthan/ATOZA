@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Atoza Clone</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" />
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm fixed-top">
+            <div class="container">
+                @* --- BẮT ĐẦU SỬA: Logic Logo --- *@
+                @{
+                    string homeController = "Home";
+                    var currentRole = Context.Session.GetString("Role")
+                        ?? User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+                    var currentFullName = Context.Session.GetString("FullName")
+                        ?? User.FindFirst(System.Security.Claims.ClaimTypes.GivenName)?.Value
+                        ?? User.Identity?.Name;
+
+                    if (currentRole != null)
+                    {
+                        if (currentRole == "Teacher") { homeController = "Teacher"; }
+                        else if (currentRole == "Student") { homeController = "Student"; }
+                        else if (currentRole == "Admin") { homeController = "Admin"; }
+                    }
+                }
+
+                <a class="navbar-brand fw-bold text-primary" href="@Url.Action("Index", homeController)">
+                    <i class="fa-solid fa-paper-plane me-2"></i> AtozaClone
+                </a>
+                @* --- KẾT THÚC SỬA --- *@
+
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                        <li class="nav-item"><a class="nav-link" href="#">Giới thiệu</a></li>
+                        <li class="nav-item"><a class="nav-link" href="#">Tính năng</a></li>
+                        <li class="nav-item"><a class="nav-link" href="#">Hướng dẫn</a></li>
+                    </ul>
+
+                    <div class="d-flex align-items-center gap-2">
+                        @if (currentFullName != null)
+                        {
+                            <div class="dropdown">
+                                <a class="btn btn-outline-primary dropdown-toggle rounded-pill px-4" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fa-solid fa-user-circle me-1"></i> @currentFullName
+                                </a>
+
+                                <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
+                                    <li><h6 class="dropdown-header">Xin chào, @Context.Session.GetString("FullName")!</h6></li>
+
+                                    @* Link menu phụ cũng nương theo Role *@
+                                    @if (currentRole == "Teacher")
+                                    {
+                                        <li><a class="dropdown-item" href="@Url.Action("Index", "Teacher")"><i class="fa-solid fa-gauge me-2"></i>Trang quản lý</a></li>
+                                    }
+                                    else if (currentRole == "Admin")
+                                    {
+                                        <li><a class="dropdown-item" href="@Url.Action("Index", "Admin")"><i class="fa-solid fa-shield-halved me-2"></i>Admin</a></li>
+                                        <li><a class="dropdown-item" href="@Url.Action("UserList", "Admin")"><i class="fa-solid fa-users-gear me-2"></i>Tai khoan</a></li>
+                                    }
+                                    else if (currentRole == "Student")
+                                    {
+                                        <li><a class="dropdown-item" href="@Url.Action("Index", "Student")"><i class="fa-solid fa-book me-2"></i>Lớp học của tôi</a></li>
+                                    }
+
+                                    <li><a class="dropdown-item" href="#"><i class="fa-solid fa-id-card me-2"></i>Thông tin cá nhân</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <a class="dropdown-item text-danger fw-bold" href="@Url.Action("Logout", "Account")">
+                                            <i class="fa-solid fa-right-from-bracket me-2"></i>Đăng xuất
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        }
+                        else
+                        {
+                            <a href="@Url.Action("Login", "Account")" class="btn btn-outline-primary rounded-pill px-4">Đăng nhập</a>
+                            <a href="@Url.Action("Register", "Account")" class="btn btn-primary rounded-pill px-4">Đăng ký</a>
+                        }
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <div style="padding-top: 80px;">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+
+    <footer class="bg-dark text-light pt-5 pb-3 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <h5 class="text-warning fw-bold">AzotaClone</h5>
+                    <p class="small text-white-50">Hệ thống tạo đề thi và chấm bài tự động hàng đầu Việt Nam.</p>
+                </div>
+                <div class="col-md-2 mb-4">
+                    <h6 class="fw-bold">Về chúng tôi</h6>
+                    <ul class="list-unstyled small">
+                        <li><a href="#" class="text-white-50 text-decoration-none">Giới thiệu</a></li>
+                        <li><a href="#" class="text-white-50 text-decoration-none">Tuyển dụng</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-2 mb-4">
+                    <h6 class="fw-bold">Hỗ trợ</h6>
+                    <ul class="list-unstyled small">
+                        <li><a href="#" class="text-white-50 text-decoration-none">Hướng dẫn sử dụng</a></li>
+                        <li><a href="#" class="text-white-50 text-decoration-none">Điều khoản</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <h6 class="fw-bold">Liên hệ</h6>
+                    <p class="small text-white-50"><i class="fa-solid fa-phone me-2"></i> 0909.999.999</p>
+                    <p class="small text-white-50"><i class="fa-solid fa-envelope me-2"></i> contact@azota-clone.com</p>
+                </div>
+            </div>
+            <hr class="border-secondary">
+            <div class="text-center small text-white-50">
+                &copy; 2024 - AzotaClone - Privacy Policy
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

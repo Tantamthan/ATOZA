@@ -1,0 +1,71 @@
+@model ATOZA.Domain.Entities.Exam
+@{
+    Layout = "~/Views/Exam/LayoutExam.cshtml";
+    var timeRemaining = Model.DurationMinutes;
+    var secondsLeft = timeRemaining * 60;
+    if (secondsLeft < 0) { secondsLeft = 0; }
+    var totalQuestionCount = Model.Questions?.Count() ?? 0;
+    var currentUserId = Context.Session.GetInt32("IdUser") ?? 0;
+    var isPracticeMode = Model.ExamMode == ATOZA.Domain.Enums.ExamMode.Practice;
+}
+<partial name="_IntroScreen" model="Model" />
+<div id="exam-interface" style="display: none;">
+    <div class="container-fluid main-content-wrapper pb-5">
+        <div class="row">
+            <div class="col-lg-9 col-12">
+                <form id="examForm">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="examId" value="@Model.Id" />
+                    @if (Model.Questions != null && Model.Questions.Any())
+                    {
+                        foreach (var q in Model.Questions)
+                        {
+                            <partial name="QuestionCard" model="q" />
+                        }
+                    }
+                </form>
+            </div>
+            <partial name="Sidebar" model="Model" />
+        </div>
+    </div>
+    <partial name="Submit" model="Model" />
+</div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    // --- KHAI BÁO BIẾN ---
+    @*// Sử dụng @(...) để đảm bảo Razor hiểu đúng phạm vi*@
+    var totalQuestions = @totalQuestionCount;
+
+    // Thêm fallback số 0 vào Javascript để chắc chắn không bị lỗi cú pháp
+    var totalSeconds = @(secondsLeft);
+
+    var isPracticeMode = @(isPracticeMode.ToString().ToLowerInvariant());
+
+    var isExamStarted = false;
+
+    // --- HÀM BẮT ĐẦU LÀM BÀI ---
+    // Đặt hàm này ra ngoài window để đảm bảo nút bấm luôn gọi được
+    window.beginExam = function() {
+        console.log("Bắt đầu làm bài..."); // Log để debug xem nút có nhận không
+
+        // 1. Ẩn màn hình chờ
+        var introScreen = document.getElementById('intro-screen');
+        if(introScreen) introScreen.style.display = 'none';
+
+        // 2. Hiện giao diện thi
+        var examInterface = document.getElementById('exam-interface');
+        if(examInterface) examInterface.style.display = 'block';
+
+        // 3. Đánh dấu đã bắt đầu
+        isExamStarted = true;
+
+        // 4. Kích hoạt Timer (nếu có thời gian)
+        if (totalSeconds > 0 && typeof startTimer === "function") {
+            startTimer(totalSeconds);
+        } else {
+            console.log("Thi tự do hoặc chưa tải được file exam.js");
+        }
+    };
+    </script>
+
+    <script src="~/js/exam.js"></script>

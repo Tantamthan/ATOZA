@@ -1,0 +1,52 @@
+@model ATOZA.Domain.Entities.Question
+
+<div class="question-card" id="q-card-@Model.OrderNumber" data-index="@Model.OrderNumber">
+    <div class="q-header">
+        <div class="d-flex align-items-center gap-2">
+            <span class="q-number">Câu @Model.OrderNumber</span>
+        </div>
+        <button type="button" class="btn-flag" id="btn-flag-@Model.OrderNumber" onclick="toggleFlag(@Model.OrderNumber)">
+            <i class="fa-regular fa-bookmark me-1"></i> Đánh dấu
+        </button>
+
+        <span class="btn-clear-selection" onclick="clearAnswer(@Model.Id, @Model.OrderNumber)">
+            <i class="fa-solid fa-eraser me-1"></i> Xóa lựa chọn
+        </span>
+    </div>
+
+    <div class="q-content">@Html.Raw(Model.Content)</div>
+
+    @{
+        var options = new Dictionary<string, string>
+{
+           {"A",Model.OptionA},
+           {"B",Model.OptionB},
+           {"C",Model.OptionC},
+           {"D",Model.OptionD}
+       };
+        foreach (var option in options)
+        {
+            if (!string.IsNullOrWhiteSpace(option.Value))
+            {
+                var optionKey = option.Key;
+                var optionText = option.Value;
+                var optionId = $"opt_{Model.Id}_{optionKey}";
+                <input type="radio"
+                       class="option-input"
+                       name="q_@Model.Id"
+                       id="@optionId"
+                       value="@optionKey"
+                       data-ordernumber="@Model.OrderNumber" onchange="handleAnswerChange(@Model.Id, @Model.OrderNumber)">
+
+                <label class="option-label" for="@optionId" data-option-key="@optionKey">
+                    <span class="option-key">@optionKey</span>
+                    <span class="option-text">@optionText</span>
+                </label>
+            }
+        }
+      
+    }
+
+    <div class="practice-feedback" id="practice-feedback-@Model.Id" aria-live="polite"></div>
+
+</div>
