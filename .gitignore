@@ -3,3 +3,6 @@ bin/
 obj/
 .claude
 .dotnet-home
+.dotnet-run.*.log
+*.lscache
+Atoza/appsettings.Local.json

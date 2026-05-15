@@ -225,6 +225,28 @@
 
         .btn-submit:active { transform: translateY(0); }
 
+        .btn-google {
+            width: 100%;
+            height: 46px;
+            background: #fff;
+            color: #374151;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .btn-google:hover {
+            border-color: #d1d5db;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+            transform: translateY(-1px);
+        }
+
+        .btn-google i { color: #ea4335; }
+
         /* Divider */
         .auth-divider {
             display: flex;
@@ -273,6 +295,19 @@
             gap: 0.5rem;
         }
 
+        .auth-success {
+            background: #ecfdf5;
+            border: 1px solid #a7f3d0;
+            color: #047857;
+            border-radius: 10px;
+            padding: 0.7rem 1rem;
+            font-size: 0.85rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
         /* Footer note */
         .auth-footer {
             text-align: center;
@@ -310,6 +345,22 @@
         <!-- Header -->
         <h1 class="auth-title">Chào mừng trở lại</h1>
         <p class="auth-subtitle">Đăng nhập để tiếp tục sử dụng Atoza</p>
+
+        @if (TempData["AuthError"] != null)
+        {
+            <div class="auth-error">
+                <i class="fa-solid fa-circle-exclamation"></i>
+                @TempData["AuthError"]
+            </div>
+        }
+
+        @if (TempData["AuthMessage"] != null)
+        {
+            <div class="auth-success">
+                <i class="fa-solid fa-circle-check"></i>
+                @TempData["AuthMessage"]
+            </div>
+        }
 
         <!-- Form -->
         <form action="@Url.Action("Login", "Account")" method="post" autocomplete="on">
@@ -360,6 +411,14 @@
         </form>
 
         <div class="auth-divider">hoặc</div>
+
+        <form action="@Url.Action("ExternalLogin", "Account")" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="provider" value="Google" />
+            <button type="submit" class="btn-google">
+                <i class="fa-brands fa-google me-2"></i>Đăng nhập với Google
+            </button>
+        </form>
 
         <div class="auth-bottom">
             Chưa có tài khoản?

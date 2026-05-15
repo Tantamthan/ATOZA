@@ -39,6 +39,7 @@
             <tbody>
                 @foreach (var user in Model)
                 {
+                    var nextIsActive = user.IsActive ? "false" : "true";
                     <tr>
                         <td class="fw-semibold">@user.FullName</td>
                         <td>@user.Email</td>
@@ -84,7 +85,7 @@
                             <form asp-action="ToggleUserStatus" method="post" class="d-inline">
                                 @Html.AntiForgeryToken()
                                 <input type="hidden" name="userId" value="@user.Id" />
-                                <input type="hidden" name="isActive" value="@(!user.IsActive)" />
+                                <input type="hidden" name="isActive" value="@nextIsActive" />
                                 <button type="submit" class="btn btn-sm @(user.IsActive ? "btn-outline-danger" : "btn-outline-success")">
                                     @(user.IsActive ? "Khoa" : "Mo khoa")
                                 </button>
