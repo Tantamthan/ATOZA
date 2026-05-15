@@ -3,6 +3,7 @@
     public class SubmitExamDto
     {
         public int ExamId { get; set; }
+        public int AttemptId { get; set; }
         public List<StudentAnswerDto> Answers { get; set; } = new();
     }
 

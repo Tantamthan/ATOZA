@@ -32,6 +32,12 @@ namespace ATOZA.Application.DTOs.Exam
         public List<QuestionDto> Questions { get; set; } = new();
     }
 
+    public class UpdateExamResultDto
+    {
+        public int ExamId { get; set; }
+        public bool CreatedNewVersion { get; set; }
+    }
+
     public class StudentExamAccessResultDto
     {
         public bool Success { get; set; }
@@ -46,11 +52,26 @@ namespace ATOZA.Application.DTOs.Exam
         public string SelectedOption { get; set; } = string.Empty;
     }
 
+    public class StartAttemptDto
+    {
+        public int ExamId { get; set; }
+    }
+
     public class PracticeAnswerResultDto
     {
         public bool Success { get; set; }
         public bool IsCorrect { get; set; }
         public string CorrectAnswer { get; set; } = string.Empty;
         public string Message { get; set; } = string.Empty;
+    }
+
+    public class ExamAttemptResultDto
+    {
+        public bool Success { get; set; }
+        public string Message { get; set; } = string.Empty;
+        public int AttemptId { get; set; }
+        public DateTime StartedAtUtc { get; set; }
+        public DateTime ExpiresAtUtc { get; set; }
+        public DateTime ServerNowUtc { get; set; }
     }
 }

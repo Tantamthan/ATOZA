@@ -1,5 +1,11 @@
+using ATOZA.Application.Abstractions.Persistence;
+using ATOZA.Domain.Enums;
+using ATOZA.Domain.Exceptions;
 using ATOZA.Infrastructure;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,6 +25,27 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.Cookie.SecurePolicy = builder.Environment.IsDevelopment()
             ? CookieSecurePolicy.SameAsRequest
             : CookieSecurePolicy.Always;
+        options.Events = new CookieAuthenticationEvents
+        {
+            OnValidatePrincipal = async context =>
+            {
+                var userIdValue = context.Principal?.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (!int.TryParse(userIdValue, out var userId))
+                {
+                    context.RejectPrincipal();
+                    return;
+                }
+
+                var db = context.HttpContext.RequestServices.GetRequiredService<IApplicationDbContext>();
+                var user = await db.Users.FirstOrDefaultAsync(u => u.Id == userId);
+                if (user == null ||
+                    !user.IsActive ||
+                    (user.Role == UserRole.Teacher && user.ApprovalStatus != ApprovalStatus.Approved))
+                {
+                    context.RejectPrincipal();
+                }
+            }
+        };
     });
 
 builder.Services.AddAuthorization();
@@ -50,10 +77,54 @@ builder.Services.AddInfrastructure(builder.Configuration);
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+app.UseExceptionHandler(exceptionApp =>
+{
+    exceptionApp.Run(async context =>
+    {
+        var exception = context.Features.Get<IExceptionHandlerPathFeature>()?.Error;
+        var logger = context.RequestServices
+            .GetRequiredService<ILoggerFactory>()
+            .CreateLogger("GlobalExceptionHandler");
+
+        if (exception != null)
+            logger.LogError(exception, "Unhandled exception for {Method} {Path}.", context.Request.Method, context.Request.Path);
+
+        var statusCode = exception switch
+        {
+            NotFoundException => StatusCodes.Status404NotFound,
+            ATOZA.Domain.Exceptions.UnauthorizedException => StatusCodes.Status403Forbidden,
+            DuplicateEntityException => StatusCodes.Status409Conflict,
+            BusinessRuleException => StatusCodes.Status400BadRequest,
+            _ => StatusCodes.Status500InternalServerError
+        };
+
+        var message = exception switch
+        {
+            NotFoundException or
+            ATOZA.Domain.Exceptions.UnauthorizedException or
+            DuplicateEntityException or
+            BusinessRuleException => exception.Message,
+            _ => "Da xay ra loi he thong. Vui long thu lai sau."
+        };
+
+        if (!WantsJson(context.Request) && statusCode == StatusCodes.Status500InternalServerError)
+        {
+            context.Response.Redirect("/Home/Error");
+            return;
+        }
+
+        context.Response.StatusCode = statusCode;
+        context.Response.ContentType = "application/json";
+        await context.Response.WriteAsJsonAsync(new
+        {
+            success = false,
+            message
+        });
+    });
+});
+
 if (!app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
 }
 
@@ -71,3 +142,12 @@ app.MapControllerRoute(
 
 
 app.Run();
+
+static bool WantsJson(HttpRequest request)
+{
+    return request.Headers.Accept.Any(value =>
+            value?.Contains("application/json", StringComparison.OrdinalIgnoreCase) == true)
+        || request.ContentType?.Contains("application/json", StringComparison.OrdinalIgnoreCase) == true
+        || request.Path.Value?.EndsWith("Api", StringComparison.OrdinalIgnoreCase) == true
+        || string.Equals(request.Headers["X-Requested-With"].ToString(), "XMLHttpRequest", StringComparison.OrdinalIgnoreCase);
+}

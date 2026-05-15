@@ -2,5 +2,6 @@
   <Project Path="ATOZA.Application/ATOZA.Application.csproj" />
   <Project Path="ATOZA.Domain/ATOZA.Domain.csproj" />
   <Project Path="ATOZA.Infrastructure/ATOZA.Infrastructure.csproj" />
+  <Project Path="ATOZA.Tests/ATOZA.Tests.csproj" />
   <Project Path="Atoza/Atoza_Web.csproj" />
 </Solution>

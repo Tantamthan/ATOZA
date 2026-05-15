@@ -1,8 +1,7 @@
 @model ATOZA.Application.DTOs.RegisterDto
-@* Lưu ý: Dùng RegisterViewModel nếu bạn đã tạo theo hướng dẫn trước, hoặc dùng ATOZA.Models.User nếu chưa sửa *@
 
 @{
-    Layout = null; // Tắt Layout chính
+    Layout = null;
     ViewBag.Title = "Đăng Ký Tài Khoản";
 }
 
@@ -11,100 +10,403 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewBag.Title - Atoza Clone</title>
+    <title>@ViewBag.Title — Atoza</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 
     <style>
         body {
-            background-color: #f8f9fa;
             min-height: 100vh;
+            background: #f5f5f7;
+            display: flex;
+            flex-direction: column;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .auth-page {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 2rem 1rem 3rem;
+        }
+
+        .auth-topbar {
+            width: 100%;
             display: flex;
             align-items: center;
-            padding: 40px 0; /* Thêm padding vì form đăng ký dài */
+            justify-content: space-between;
+            padding: 1rem 2rem;
+            position: fixed;
+            top: 0; left: 0;
+            background: rgba(245,245,247,0.85);
+            backdrop-filter: blur(10px);
+            z-index: 10;
+            border-bottom: 1px solid rgba(0,0,0,0.06);
+        }
+
+        .auth-brand {
+            font-weight: 800;
+            font-size: 1.2rem;
+            background: linear-gradient(135deg, #ff6a00, #ee0979);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-decoration: none;
+        }
+
+        .auth-topbar-link {
+            font-size: 0.85rem;
+            color: #6b7280;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .auth-topbar-link span { color: #ff6a00; font-weight: 600; }
+        .auth-topbar-link:hover { color: #374151; }
+
+        .auth-box {
+            background: #fff;
+            border-radius: 20px;
+            padding: 2.25rem 2.25rem;
+            width: 100%;
+            max-width: 460px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 20px 60px -10px rgba(0,0,0,0.1);
+            border: 1px solid rgba(0,0,0,0.06);
+            margin-top: 1rem;
+        }
+
+        .auth-title {
+            font-size: 1.45rem;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 0.35rem;
+            letter-spacing: -0.02em;
+        }
+
+        .auth-subtitle {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Role selector */
+        .role-selector {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.6rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .role-option { display: none; }
+
+        .role-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 0.75rem 1rem;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #374151;
+        }
+
+        .role-label:hover { border-color: #ff6a00; background: #fff8f5; }
+
+        .role-option:checked + .role-label {
+            border-color: #ff6a00;
+            background: #fff3e6;
+            color: #ff6a00;
+        }
+
+        .role-icon {
+            width: 34px; height: 34px;
+            background: #f3f4f6;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.95rem;
+            color: #6b7280;
+            flex-shrink: 0;
+            transition: all 0.2s;
+        }
+
+        .role-option:checked + .role-label .role-icon {
+            background: #ff6a00;
+            color: #fff;
+        }
+
+        /* Field */
+        .field-wrap { position: relative; margin-bottom: 1rem; }
+
+        .field-label {
+            display: block;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 0.4rem;
+            letter-spacing: 0.01em;
+        }
+
+        .field-input, .field-select {
+            width: 100%;
+            height: 44px;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 0 1rem;
+            font-size: 0.88rem;
+            color: #111827;
+            background: #fff;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            outline: none;
+            font-family: 'Inter', sans-serif;
+            appearance: none;
+        }
+
+        .field-input:focus, .field-select:focus {
+            border-color: #ff6a00;
+            box-shadow: 0 0 0 3px rgba(255,106,0,0.1);
+        }
+
+        /* Hidden role input (fallback select) */
+        .role-hidden-select { display: none !important; }
+
+        /* Two-col */
+        .field-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Submit */
+        .btn-submit {
+            width: 100%;
+            height: 46px;
+            background: linear-gradient(135deg, #ff6a00, #ee0979);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
+            box-shadow: 0 4px 14px rgba(255,106,0,0.35);
+            font-family: 'Inter', sans-serif;
+            margin-top: 0.25rem;
+        }
+
+        .btn-submit:hover {
+            opacity: 0.93;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(255,106,0,0.4);
+        }
+
+        .btn-submit:active { transform: translateY(0); }
+
+        /* Error */
+        .auth-error {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #dc2626;
+            border-radius: 10px;
+            padding: 0.7rem 1rem;
+            font-size: 0.85rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .auth-bottom {
+            text-align: center;
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-top: 1.5rem;
+            padding-top: 1.25rem;
+            border-top: 1px solid #f3f4f6;
+        }
+
+        .auth-bottom a {
+            color: #ff6a00;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .auth-bottom a:hover { text-decoration: underline; }
+
+        .auth-footer {
+            text-align: center;
+            font-size: 0.78rem;
+            color: #9ca3af;
+            margin-top: 1.5rem;
+            padding-bottom: 1rem;
+        }
+
+        .auth-footer a { color: #6b7280; text-decoration: none; }
+        .auth-footer a:hover { color: #374151; }
+
+        .field-hint {
+            font-size: 0.75rem;
+            color: #9ca3af;
+            margin-top: 0.3rem;
+        }
+
+        .validation-msg {
+            font-size: 0.78rem;
+            color: #dc2626;
+            margin-top: 0.3rem;
+        }
+
+        /* Section heading */
+        .field-section {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            color: #9ca3af;
+            margin: 1.25rem 0 0.75rem;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-md-8 col-lg-6">
-                <div class="card shadow-lg border-0 rounded-3">
-                    <div class="card-body p-5">
-                        <div class="text-center mb-4">
-                            <i class="fa-solid fa-user-plus fa-3x mb-3" style="color: #ff6a00;"></i>
-                            <h3 class="fw-bold" style="color: #ff6a00;">Đăng Ký Thành Viên</h3>
-                        </div>
 
-                        @using (Html.BeginForm("Register", "Account", FormMethod.Post))
-                        {
-                            @Html.AntiForgeryToken()
-                            @Html.ValidationSummary(true, "", new { @class = "text-danger mb-3" })
+<!-- Top bar -->
+<div class="auth-topbar">
+    <a href="@Url.Action("Index", "Home")" class="auth-brand">
+        <i class="fa-solid fa-paper-plane me-1"></i> Atoza
+    </a>
+    <a href="@Url.Action("Login", "Account")" class="auth-topbar-link">
+        Đã có tài khoản? <span>Đăng nhập</span>
+    </a>
+</div>
 
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Họ và tên</label>
-                                @Html.EditorFor(model => model.FullName, new { htmlAttributes = new { @class = "form-control", placeholder = "Nhập họ tên", autocomplete = "name" } })
-                                @Html.ValidationMessageFor(model => model.FullName, "", new { @class = "text-danger" })
-                            </div>
+<!-- Main -->
+<div class="auth-page" style="padding-top: 5.5rem;">
 
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Email</label>
-                                @Html.EditorFor(model => model.Email, new { htmlAttributes = new { @class = "form-control", type = "email", placeholder = "email@example.com", autocomplete = "email" } })
-                                @Html.ValidationMessageFor(model => model.Email, "", new { @class = "text-danger" })
-                            </div>
+    <div class="auth-box">
 
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Bạn là?</label>
-                                @Html.DropDownListFor(model => model.Role, new List<SelectListItem>
-                                {
-                                    new SelectListItem { Text = "Học sinh (Student)", Value = "Student" },
-                                    new SelectListItem { Text = "Giáo viên (Teacher)", Value = "Teacher" }
-                                }, "--- Chọn vai trò ---", new { @class = "form-select" })
-                                @Html.ValidationMessageFor(model => model.Role, "", new { @class = "text-danger" })
-                            </div>
+        <h1 class="auth-title">Tạo tài khoản mới</h1>
+        <p class="auth-subtitle">Miễn phí, không cần thẻ tín dụng</p>
 
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Tên đăng nhập</label>
-                                @Html.EditorFor(model => model.UserName, new { htmlAttributes = new { @class = "form-control", placeholder = "Username", autocomplete = "username" } })
-                                @Html.ValidationMessageFor(model => model.UserName, "", new { @class = "text-danger" })
-                            </div>
+        @using (Html.BeginForm("Register", "Account", FormMethod.Post, new { id = "registerForm", autocomplete = "on" }))
+        {
+            @Html.AntiForgeryToken()
 
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label fw-bold">Mật khẩu</label>
-                                    @Html.PasswordFor(model => model.Password, new { @class = "form-control", placeholder = "Nhập mật khẩu", autocomplete = "new-password" })
-                                    @Html.ValidationMessageFor(model => model.Password, "", new { @class = "text-danger" })
-                                </div>
-                                <div class="col-md-6 mb-4">
-                                    <label class="form-label fw-bold">Xác nhận mật khẩu</label>
-                                    @Html.PasswordFor(model => model.ConfirmPassword, new { @class = "form-control", placeholder = "Nhập lại mật khẩu", autocomplete = "new-password" })
-                                    @Html.ValidationMessageFor(model => model.ConfirmPassword, "", new { @class = "text-danger" })
-                                </div>
-                            </div>
+            @if (ViewBag.Error != null)
+            {
+                <div class="auth-error">
+                    <i class="fa-solid fa-circle-exclamation"></i> @ViewBag.Error
+                </div>
+            }
 
-                            if (ViewBag.Error != null)
-                            {
-                                <div class="alert alert-danger text-center">@ViewBag.Error</div>
-                            }
+            @if (ViewData.ModelState.Values.Any(v => v.Errors.Any()))
+            {
+                <div class="auth-error">
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                    Vui lòng kiểm tra lại thông tin bên dưới.
+                </div>
+            }
 
-                            <div class="d-grid gap-2">
-                                <button type="submit" class="btn text-white fw-bold py-2" style="background-color: #ff6a00;">Đăng Ký Ngay</button>
-                            </div>
-                        }
-
-                        <hr class="my-4">
-
-                        <div class="text-center">
-                            <span class="text-muted">Đã có tài khoản?</span>
-                            <a href="@Url.Action("Login", "Account")" class="text-decoration-none fw-bold" style="color: #ff6a00;">Đăng nhập</a>
-                            <br />
-                            <a href="@Url.Action("Index", "Home")" class="text-muted small mt-2 d-inline-block"><i class="fa-solid fa-arrow-left"></i> Về trang chủ</a>
-                        </div>
+            <!-- Step 1: Role -->
+            <p class="field-section">Bạn là</p>
+            <div class="role-selector" id="rolePicker">
+                <input type="radio" name="__roleUI" id="roleStudent" value="Student" class="role-option" checked>
+                <label for="roleStudent" class="role-label">
+                    <div class="role-icon"><i class="fa-solid fa-user-graduate"></i></div>
+                    <div>
+                        <div style="font-weight:600;">Học sinh</div>
+                        <div style="font-size:0.75rem;color:#9ca3af;font-weight:400;margin-top:1px;">Làm bài, xem điểm</div>
                     </div>
+                </label>
+
+                <input type="radio" name="__roleUI" id="roleTeacher" value="Teacher" class="role-option">
+                <label for="roleTeacher" class="role-label">
+                    <div class="role-icon"><i class="fa-solid fa-chalkboard-teacher"></i></div>
+                    <div>
+                        <div style="font-weight:600;">Giáo viên</div>
+                        <div style="font-size:0.75rem;color:#9ca3af;font-weight:400;margin-top:1px;">Tạo đề, giao bài</div>
+                    </div>
+                </label>
+            </div>
+            @Html.HiddenFor(m => m.Role, new { id = "roleValue" })
+
+            <!-- Step 2: Info -->
+            <p class="field-section">Thông tin cá nhân</p>
+
+            <div class="field-wrap">
+                <label class="field-label" for="FullName">Họ và tên</label>
+                @Html.EditorFor(m => m.FullName, new { htmlAttributes = new { @class = "field-input", id = "FullName", placeholder = "Nhập họ và tên đầy đủ", autocomplete = "name" } })
+                @Html.ValidationMessageFor(m => m.FullName, "", new { @class = "validation-msg" })
+            </div>
+
+            <div class="field-wrap">
+                <label class="field-label" for="Email">Email</label>
+                @Html.EditorFor(m => m.Email, new { htmlAttributes = new { @class = "field-input", id = "Email", type = "email", placeholder = "email@example.com", autocomplete = "email" } })
+                @Html.ValidationMessageFor(m => m.Email, "", new { @class = "validation-msg" })
+            </div>
+
+            <!-- Step 3: Account -->
+            <p class="field-section">Tài khoản</p>
+
+            <div class="field-wrap">
+                <label class="field-label" for="UserName">Tên đăng nhập</label>
+                @Html.EditorFor(m => m.UserName, new { htmlAttributes = new { @class = "field-input", id = "UserName", placeholder = "Không dấu, không khoảng trắng", autocomplete = "username" } })
+                @Html.ValidationMessageFor(m => m.UserName, "", new { @class = "validation-msg" })
+                <div class="field-hint">Ví dụ: nguyen.van.a hoặc nguyenvana123</div>
+            </div>
+
+            <div class="field-grid">
+                <div>
+                    <label class="field-label" for="Password">Mật khẩu</label>
+                    @Html.PasswordFor(m => m.Password, new { @class = "field-input", id = "Password", placeholder = "Tối thiểu 6 ký tự", autocomplete = "new-password" })
+                    @Html.ValidationMessageFor(m => m.Password, "", new { @class = "validation-msg" })
+                </div>
+                <div>
+                    <label class="field-label" for="ConfirmPassword">Xác nhận</label>
+                    @Html.PasswordFor(m => m.ConfirmPassword, new { @class = "field-input", id = "ConfirmPassword", placeholder = "Nhập lại mật khẩu", autocomplete = "new-password" })
+                    @Html.ValidationMessageFor(m => m.ConfirmPassword, "", new { @class = "validation-msg" })
                 </div>
             </div>
+
+            <button type="submit" class="btn-submit">
+                Tạo tài khoản
+            </button>
+        }
+
+        <div class="auth-bottom">
+            Đã có tài khoản? <a href="@Url.Action("Login", "Account")">Đăng nhập</a>
         </div>
     </div>
+
+    <div class="auth-footer">
+        <a href="@Url.Action("Index", "Home")">
+            <i class="fa-solid fa-arrow-left me-1"></i>Về trang chủ
+        </a>
+        &nbsp;&bull;&nbsp; &copy; 2024 Atoza
+    </div>
+
+</div>
+
+<script>
+    // Sync radio buttons -> hidden Role field
+    document.querySelectorAll('input[name="__roleUI"]').forEach(radio => {
+        radio.addEventListener('change', () => {
+            document.getElementById('roleValue').value = radio.value;
+        });
+    });
+    // Set initial value
+    document.getElementById('roleValue').value = document.querySelector('input[name="__roleUI"]:checked').value;
+</script>
 </body>
 </html>

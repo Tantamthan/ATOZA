@@ -2,6 +2,7 @@ using ATOZA.Application.Abstractions.Persistence;
 using ATOZA.Application.Abstractions.Services;
 using ATOZA.Application.DTOs.Submission;
 using ATOZA.Domain.Entities;
+using ATOZA.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace ATOZA.Infrastructure.Services
@@ -26,6 +27,22 @@ namespace ATOZA.Infrastructure.Services
 
             if (await _db.Submissions.AnyAsync(s => s.ExamId == dto.ExamId && s.StudentId == studentId))
                 return new SubmitResultDto { Success = false, Message = "Ban da nop bai nay roi!" };
+
+            var attempt = await _db.ExamAttempts
+                .FirstOrDefaultAsync(a => a.Id == dto.AttemptId && a.ExamId == dto.ExamId && a.StudentId == studentId);
+            if (attempt == null)
+                return new SubmitResultDto { Success = false, Message = "Luot lam bai khong hop le." };
+
+            if (attempt.Status == AttemptStatus.Submitted)
+                return new SubmitResultDto { Success = false, Message = "Ban da nop bai nay roi!" };
+
+            var now = DateTime.UtcNow;
+            if (attempt.Status == AttemptStatus.Expired || attempt.ExpiresAtUtc < now)
+            {
+                attempt.Status = AttemptStatus.Expired;
+                await _db.SaveChangesAsync();
+                return new SubmitResultDto { Success = false, Message = "Da het thoi gian lam bai." };
+            }
 
             var exam = assignment.Exam;
             var questionIds = exam.Questions.Select(q => q.Id).ToHashSet();
@@ -70,10 +87,19 @@ namespace ATOZA.Infrastructure.Services
             };
 
             _db.Submissions.Add(submission);
-            await _db.SaveChangesAsync();
+            try
+            {
+                await _db.SaveChangesAsync();
+            }
+            catch (DbUpdateException)
+            {
+                return new SubmitResultDto { Success = false, Message = "Ban da nop bai nay roi!" };
+            }
 
             details.ForEach(d => d.SubmissionId = submission.Id);
             _db.SubmissionDetails.AddRange(details);
+            attempt.Status = AttemptStatus.Submitted;
+            attempt.SubmittedAtUtc = submission.SubmitTime;
             await _db.SaveChangesAsync();
 
             return new SubmitResultDto { Success = true, Score = score, Message = $"Diem: {score}" };

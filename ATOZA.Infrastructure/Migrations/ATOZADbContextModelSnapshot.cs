@@ -133,10 +133,18 @@ namespace ATOZA.Infrastructure.Migrations
                     b.Property<int>("ExamMode")
                         .HasColumnType("int");
 
+                    b.Property<bool>("IsArchived")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
                     b.Property<bool>("IsPublic")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bit")
                         .HasDefaultValue(false);
+
+                    b.Property<int?>("ParentExamId")
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("StartTime")
                         .HasColumnType("datetime2");
@@ -145,11 +153,56 @@ namespace ATOZA.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("VersionNumber")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
+
                     b.HasKey("Id");
 
                     b.HasIndex("CreatorId");
 
+                    b.HasIndex("ParentExamId");
+
                     b.ToTable("Exams", (string)null);
+                });
+
+            modelBuilder.Entity("ATOZA.Domain.Entities.ExamAttempt", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("ExamId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("ExpiresAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("StartedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<int>("StudentId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("SubmittedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StudentId");
+
+                    b.HasIndex("ExamId", "StudentId", "Status");
+
+                    b.ToTable("ExamAttempts", (string)null);
                 });
 
             modelBuilder.Entity("ATOZA.Domain.Entities.Question", b =>
@@ -225,9 +278,10 @@ namespace ATOZA.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ExamId");
-
                     b.HasIndex("StudentId");
+
+                    b.HasIndex("ExamId", "StudentId")
+                        .IsUnique();
 
                     b.ToTable("Submissions", (string)null);
                 });
@@ -268,6 +322,9 @@ namespace ATOZA.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ApprovalStatus")
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -312,6 +369,7 @@ namespace ATOZA.Infrastructure.Migrations
                         new
                         {
                             Id = -1,
+                            ApprovalStatus = 1,
                             CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Email = "admin@atoza.vn",
                             FullName = "System Admin",
@@ -379,7 +437,33 @@ namespace ATOZA.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("ATOZA.Domain.Entities.Exam", "ParentExam")
+                        .WithMany("Versions")
+                        .HasForeignKey("ParentExamId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.Navigation("Creator");
+
+                    b.Navigation("ParentExam");
+                });
+
+            modelBuilder.Entity("ATOZA.Domain.Entities.ExamAttempt", b =>
+                {
+                    b.HasOne("ATOZA.Domain.Entities.Exam", "Exam")
+                        .WithMany("ExamAttempts")
+                        .HasForeignKey("ExamId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ATOZA.Domain.Entities.User", "Student")
+                        .WithMany("ExamAttempts")
+                        .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Exam");
+
+                    b.Navigation("Student");
                 });
 
             modelBuilder.Entity("ATOZA.Domain.Entities.Question", b =>
@@ -442,9 +526,13 @@ namespace ATOZA.Infrastructure.Migrations
                 {
                     b.Navigation("ClassAssignments");
 
+                    b.Navigation("ExamAttempts");
+
                     b.Navigation("Questions");
 
                     b.Navigation("Submissions");
+
+                    b.Navigation("Versions");
                 });
 
             modelBuilder.Entity("ATOZA.Domain.Entities.Question", b =>
@@ -462,6 +550,8 @@ namespace ATOZA.Infrastructure.Migrations
                     b.Navigation("ClassStudents");
 
                     b.Navigation("Classes");
+
+                    b.Navigation("ExamAttempts");
 
                     b.Navigation("Exams");
 

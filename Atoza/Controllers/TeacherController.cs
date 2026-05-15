@@ -15,17 +15,20 @@ namespace Atoza_Web.Controllers
         private readonly IExamService _examService;
         private readonly ISubmissionService _submissionService;
         private readonly IFileParserService _fileParser;
+        private readonly ILogger<TeacherController> _logger;
 
         public TeacherController(
             IClassService classService,
             IExamService examService,
             ISubmissionService submissionService,
-            IFileParserService fileParser)
+            IFileParserService fileParser,
+            ILogger<TeacherController> logger)
         {
             _classService = classService;
             _examService = examService;
             _submissionService = submissionService;
             _fileParser = fileParser;
+            _logger = logger;
         }
 
         private bool IsTeacher() => User.IsInRole("Teacher");
@@ -241,7 +244,11 @@ namespace Atoza_Web.Controllers
             }
             catch (Exception ex)
             {
-                TempData["Error"] = "Loi: " + ex.Message;
+                _logger.LogError(ex, "Failed to process uploaded exam file {FileName} for teacher {TeacherId}.",
+                    fileUpload.FileName,
+                    TeacherId);
+
+                TempData["Error"] = "Khong the xu ly file luc nay. Vui long kiem tra dinh dang file va thu lai.";
                 return RedirectToAction("CreateExam", "Exam");
             }
         }

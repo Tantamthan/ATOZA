@@ -3,138 +3,111 @@
 @{
     ViewBag.Title = "Lớp học của tôi";
     Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var gradients = new[]
+    {
+        "linear-gradient(135deg,#667eea,#764ba2)",
+        "linear-gradient(135deg,#ff6a00,#ee0979)",
+        "linear-gradient(135deg,#11998e,#38ef7d)",
+        "linear-gradient(135deg,#3a7bd5,#3a6073)",
+        "linear-gradient(135deg,#f7971e,#ffd200)",
+        "linear-gradient(135deg,#cc2b5e,#753a88)",
+    };
 }
 
-<style>
-    /* CSS nội bộ để làm đẹp nhanh */
-    .hover-card {
-        transition: all 0.3s ease;
-        border: none;
-        overflow: hidden;
-    }
-
-        .hover-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
-        }
-
-    .card-header-gradient {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        height: 80px;
-        position: relative;
-    }
-
-    .teacher-avatar {
-        width: 50px;
-        height: 50px;
-        background-color: #fff;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        position: absolute;
-        bottom: -25px;
-        right: 20px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        font-size: 24px;
-        color: #764ba2;
-    }
-
-    .class-code-badge {
-        background-color: #f8f9fa;
-        border: 1px dashed #ced4da;
-        color: #495057;
-        font-family: monospace;
-        padding: 4px 8px;
-        border-radius: 4px;
-        font-size: 0.9em;
-    }
-</style>
-
 <div class="container py-5">
-    @* --- Header Section: Gom nhóm tiêu đề và nút bấm --- *@
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-5">
-        <div class="mb-3 mb-md-0">
-            <h2 class="fw-bold text-dark"><i class="fa-solid fa-graduation-cap me-2 text-primary"></i>Lớp Học Của Tôi</h2>
-            <p class="text-muted mb-0">Quản lý và truy cập các lớp học bạn đang tham gia</p>
-        </div>
 
-        <div class="d-flex gap-2">
-            <a href="@Url.Action("MyAssignments", "Student")" class="btn btn-light border fw-bold shadow-sm">
-                <i class="fa-solid fa-clock-rotate-left me-2 text-secondary"></i>Lịch sử làm bài
+    <!-- ── Page Header ── -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-5 gap-3">
+        <div>
+            <h2 class="fw-bold mb-1" style="color:var(--dark);letter-spacing:-0.02em;font-size:1.75rem;">
+                <i class="fa-solid fa-graduation-cap me-2" style="color:var(--primary);"></i>Lớp học của tôi
+            </h2>
+            <p class="text-muted mb-0" style="font-size:0.9rem;">Quản lý và truy cập các lớp học bạn đang tham gia</p>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+            <a href="@Url.Action("MyAssignments", "Student")"
+               class="btn rounded-pill px-4"
+               style="background:var(--bg-light);border:1px solid var(--border);color:var(--text);font-weight:600;font-size:0.875rem;">
+                <i class="fa-solid fa-clock-rotate-left me-2 text-muted"></i>Lịch sử làm bài
             </a>
-            <a href="@Url.Action("JoinClass", "Student")" class="btn btn-primary fw-bold shadow-sm px-4">
+            <a href="@Url.Action("JoinClass", "Student")" class="btn btn-orange rounded-pill px-4" style="font-weight:600;">
                 <i class="fa-solid fa-plus me-2"></i>Tham gia lớp mới
             </a>
         </div>
     </div>
 
-    @* --- Thông báo (Alert) --- *@
+    <!-- ── Alert ── -->
     @if (TempData["Success"] != null)
     {
-        <div class="alert alert-success alert-dismissible fade show shadow-sm border-0 border-start border-5 border-success" role="alert">
-            <div class="d-flex align-items-center">
-                <i class="fa-solid fa-circle-check fs-4 me-3 text-success"></i>
-                <div>
-                    <strong>Thành công!</strong> @TempData["Success"]
-                </div>
-            </div>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+            <i class="fa-solid fa-circle-check me-2"></i> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     }
 
-    @* --- Danh sách lớp học --- *@
+    <!-- ── Class Grid ── -->
     @if (!Model.Any())
     {
-        <div class="text-center py-5 bg-white rounded-4 shadow-sm border">
-            <img src="https://cdn-icons-png.flaticon.com/512/7486/7486744.png" style="width: 150px; opacity: 0.8" class="mb-4" alt="Empty state" />
-            <h4 class="fw-bold text-dark">Bạn chưa tham gia lớp học nào</h4>
-            <p class="text-muted">Hãy xin mã lớp từ giáo viên và nhấn nút "Tham gia lớp mới" ở góc trên nhé.</p>
-            <a href="@Url.Action("JoinClass", "Student")" class="btn btn-outline-primary mt-2 rounded-pill px-4">Tham gia ngay</a>
+        <div class="empty-state">
+            <div class="empty-state-icon" style="font-size:2rem;width:90px;height:90px;">
+                <i class="fa-solid fa-book-open"></i>
+            </div>
+            <h4 class="fw-bold mb-2" style="color:var(--dark);">Bạn chưa tham gia lớp học nào</h4>
+            <p class="text-muted mb-4" style="font-size:0.9rem;">
+                Hãy xin mã lớp từ giáo viên và nhấn "Tham gia lớp mới" để bắt đầu.
+            </p>
+            <a href="@Url.Action("JoinClass", "Student")" class="btn btn-orange rounded-pill px-5">
+                <i class="fa-solid fa-plus me-2"></i>Tham gia ngay
+            </a>
         </div>
     }
     else
     {
         <div class="row g-4">
+            @{ int gi = 0; }
             @foreach (var item in Model)
             {
+                var grad = gradients[gi % gradients.Length];
+                gi++;
                 <div class="col-md-6 col-lg-4">
-                    <div class="card shadow-sm h-100 hover-card rounded-4">
-                        @* Phần trang trí màu mè bên trên *@
-                        <div class="card-header-gradient">
-                            <div class="teacher-avatar">
-                                <i class="fa-solid fa-chalkboard-user"></i>
+                    <div class="class-card">
+                        <div class="class-card-banner" style="background:@grad;">
+                            <div class="class-card-avatar">
+                                <i class="fa-solid fa-chalkboard-user" style="color:var(--primary);"></i>
                             </div>
                         </div>
 
-                        <div class="card-body pt-4">
-                            @* Role Badge *@
+                        <div class="card-body pt-5 px-4 pb-3">
                             <div class="mb-2">
-                                <span class="badge bg-light text-primary border border-primary rounded-pill px-3">Học sinh</span>
+                                <span class="badge rounded-pill px-3 py-1"
+                                      style="background:var(--primary-light);color:var(--primary);font-size:0.72rem;font-weight:600;">
+                                    Học sinh
+                                </span>
                             </div>
 
-                            @* Tên lớp *@
-                            <h5 class="card-title fw-bold text-dark mb-1 text-truncate" title="@item.ClassName">
+                            <h5 class="fw-bold mb-1"
+                                style="color:var(--dark);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"
+                                title="@item.ClassName">
                                 @item.ClassName
                             </h5>
 
-                            @* Tên giáo viên *@
-                            <p class="text-muted small mb-3">
-                                <i class="fa-regular fa-user me-1"></i> GV: @item.Teacher.FullName
+                            <p class="text-muted mb-3" style="font-size:0.85rem;">
+                                <i class="fa-regular fa-circle-user me-1"></i> GV: @item.Teacher.FullName
                             </p>
 
-                            <hr class="text-muted opacity-25">
-
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div class="small text-muted">
-                                    Mã lớp: <span class="class-code-badge user-select-all">@item.JoinCode</span>
+                            <div class="d-flex align-items-center justify-content-between pt-2"
+                                 style="border-top:1px solid var(--border);">
+                                <div style="font-size:0.8rem;color:var(--text-muted);">
+                                    Mã lớp: <span class="class-code-badge">@item.JoinCode</span>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="card-footer bg-white border-0 p-3 pt-0">
-                            <a href="@Url.Action("ClassDetail", "Student", new { id = item.Id })" class="btn btn-primary w-100 rounded-pill fw-bold py-2">
-                                Vào lớp ngay <i class="fa-solid fa-arrow-right ms-1"></i>
+                        <div class="px-4 pb-4">
+                            <a href="@Url.Action("ClassDetail", "Student", new { id = item.Id })"
+                               class="btn btn-orange w-100 rounded-pill py-2" style="font-weight:600;">
+                                Vào lớp <i class="fa-solid fa-arrow-right ms-1"></i>
                             </a>
                         </div>
                     </div>

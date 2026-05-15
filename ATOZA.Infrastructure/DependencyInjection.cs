@@ -33,6 +33,7 @@ namespace ATOZA.Infrastructure
             services.AddScoped<IExamService, ExamService>();
             services.AddScoped<IClassService, ClassService>();
             services.AddScoped<ISubmissionService, SubmissionService>();
+            services.AddScoped<IExamAttemptService, ExamAttemptService>();
             services.AddScoped<IFileParserService, FileParserService>();
             services.AddScoped<IAdminService, AdminService>();
 
