@@ -10,10 +10,61 @@ const modalTimer = document.getElementById('modal-time-left');
 const answeredCountElement = document.getElementById('answered-count');
 const totalCountElement = document.getElementById('total-count');
 const examForm = document.getElementById('examForm');
+const attemptIdElement = document.getElementById('attemptId');
 
 // Khai báo biến interval để có thể xóa bỏ sau này
 let interval;
 let answered;
+let isSubmitting = false;
+
+function startExamAttempt() {
+    const examIdElement = document.getElementById('examId');
+    if (!examIdElement) {
+        alert("Khong tim thay thong tin de thi.");
+        return;
+    }
+
+    fetch('/Exam/StartAttempt', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+        },
+        body: JSON.stringify({
+            ExamId: parseInt(examIdElement.value)
+        })
+    })
+        .then(function (response) {
+            return response.json().then(function (data) {
+                return { ok: response.ok, data: data };
+            });
+        })
+        .then(function (result) {
+            const data = result.data;
+            if (!result.ok || !data.success) {
+                alert(data.message || "Khong the bat dau bai thi luc nay.");
+                return;
+            }
+
+            if (attemptIdElement) attemptIdElement.value = data.attemptId;
+
+            const expiresAt = Date.parse(data.expiresAtUtc);
+            const serverNow = Date.parse(data.serverNowUtc);
+            totalSeconds = Math.max(0, Math.floor((expiresAt - serverNow) / 1000));
+
+            const introScreen = document.getElementById('intro-screen');
+            if (introScreen) introScreen.style.display = 'none';
+
+            const examInterface = document.getElementById('exam-interface');
+            if (examInterface) examInterface.style.display = 'block';
+
+            if (typeof isExamStarted !== 'undefined') isExamStarted = true;
+            startCountdown();
+        })
+        .catch(function () {
+            alert("Khong the ket noi de bat dau bai thi.");
+        });
+}
 
 /**
  * Cập nhật số lượng câu hỏi đã trả lời và hiển thị trên modal/sidebar.
@@ -296,8 +347,7 @@ function jumpToQuestion(numStr) {
 
 // --- XỬ LÝ SỰ KIỆN DOM CONTENT LOADED ---
 document.addEventListener("DOMContentLoaded", function () {
-    // 1. Khởi chạy đồng hồ và cập nhật số câu hỏi
-    startCountdown();
+    // 1. Cập nhật số câu hỏi; đồng hồ chỉ chạy sau khi server tạo attempt.
     updateAnsweredCount();
 
     // Xử lý phím Enter cho ô nhập số câu hỏi
@@ -358,6 +408,18 @@ function submitExamAjax() {
         return;
     }
     var examId = parseInt(examIdElement.value);
+    var attemptId = attemptIdElement ? parseInt(attemptIdElement.value) : 0;
+    if (!attemptId) {
+        alert("Luot lam bai khong hop le. Vui long bat dau lai bai thi.");
+        return;
+    }
+
+    if (isSubmitting) return;
+    isSubmitting = true;
+
+    document.querySelectorAll('button[onclick*="submitExamAjax"]').forEach(function (button) {
+        button.disabled = true;
+    });
 
     // 2. Thu thập tất cả câu trả lời
     var answers = [];
@@ -382,6 +444,7 @@ function submitExamAjax() {
     // 3. Tạo object submission
     var submission = {
         ExamId: examId,
+        AttemptId: attemptId,
         Answers: answers
     };
 
@@ -427,12 +490,20 @@ function submitExamAjax() {
                 }
             } else {
                 alert("Lỗi: " + data.message);
+                isSubmitting = false;
+                document.querySelectorAll('button[onclick*="submitExamAjax"]').forEach(function (button) {
+                    button.disabled = false;
+                });
             }
         })
         .catch(function (error) {
             // Ẩn loading modal
             if (loadingModalInstance) loadingModalInstance.hide();
             alert("Lỗi kết nối: " + error.message);
+            isSubmitting = false;
+            document.querySelectorAll('button[onclick*="submitExamAjax"]').forEach(function (button) {
+                button.disabled = false;
+            });
             console.error("Submit error:", error);
         });
 }
@@ -455,3 +526,4 @@ window.scrollToQuestion = scrollToQuestion;
 window.jumpToQuestion = jumpToQuestion;
 window.submitExamAjax = submitExamAjax;
 window.autoSubmitExam = autoSubmitExam;
+window.startExamAttempt = startExamAttempt;

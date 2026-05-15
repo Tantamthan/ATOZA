@@ -44,6 +44,17 @@ namespace Atoza_Web.Controllers
             return RedirectToAction("UserList");
         }
 
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> SetTeacherApproval(int userId, ApprovalStatus approvalStatus)
+        {
+            bool updated = await _adminService.SetTeacherApprovalStatusAsync(userId, approvalStatus);
+            TempData[updated ? "Success" : "Error"] = updated
+                ? "Da cap nhat trang thai duyet giao vien."
+                : "Khong tim thay tai khoan giao vien.";
+
+            return RedirectToAction("UserList", new { roleFilter = UserRole.Teacher });
+        }
+
         public async Task<IActionResult> ExamList()
         {
             return View(await _adminService.GetAllExamsWithCreatorAsync());

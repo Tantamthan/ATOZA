@@ -52,7 +52,7 @@ namespace ATOZA.Infrastructure.Services
                 return AssignExamResult("Ban khong co quyen giao bai cho lop nay.");
 
             bool canUseExam = await _db.Exams.AnyAsync(e =>
-                e.Id == dto.ExamId && (e.CreatorId == teacherId || e.IsPublic));
+                e.Id == dto.ExamId && !e.IsArchived && (e.CreatorId == teacherId || e.IsPublic));
             if (!canUseExam)
                 return AssignExamResult("Ban khong co quyen su dung de thi nay.");
 

@@ -11,11 +11,13 @@ namespace ATOZA.Domain.Entities
         public string PasswordHash { get; set; } = string.Empty;
         public UserRole Role { get; set; } = UserRole.Student;
         public bool IsActive { get; set; } = true;
+        public ApprovalStatus ApprovalStatus { get; set; } = ApprovalStatus.Approved;
 
         // Navigation properties
         public ICollection<Class> Classes { get; set; } = new List<Class>();
         public ICollection<ClassStudent> ClassStudents { get; set; } = new List<ClassStudent>();
         public ICollection<Exam> Exams { get; set; } = new List<Exam>();
         public ICollection<Submission> Submissions { get; set; } = new List<Submission>();
+        public ICollection<ExamAttempt> ExamAttempts { get; set; } = new List<ExamAttempt>();
     }
 }

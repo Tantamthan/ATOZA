@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Atoza_Web")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e896654806ea224901138a5509b139d4bb6ebfa4")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+713e5afaaeb1329f857ce6dc34fb135661087986")]
 [assembly: System.Reflection.AssemblyProductAttribute("Atoza_Web")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Atoza_Web")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -359,15 +359,21 @@
 
             if (response.ok) {
                 if (_isEditMode) {
+                    const savedExamId = result?.examId || _editExamId;
+                    const createdNewVersion = result?.createdNewVersion === true;
                     // Edit mode: hiển thị success modal với thông tin cập nhật
                     const successTitle = document.getElementById('successTitle');
                     const successMessage = document.getElementById('successMessage');
                     const shareLinkGroup = document.getElementById('shareLinkGroup');
                     const successCloseBtn = document.getElementById('successCloseBtn');
+                    const versionMessage = createdNewVersion
+                        ? 'De da co lich su su dung nen he thong da tao phien ban moi.'
+                        : 'De thi cua ban da duoc cap nhat.';
 
                     if (successTitle) successTitle.textContent = 'Cập Nhật Đề Thi Thành Công!';
                     if (successMessage) successMessage.textContent = 'Đề thi của bạn đã được cập nhật.';
                     if (shareLinkGroup) shareLinkGroup.style.display = 'none';
+                    if (successMessage) successMessage.textContent = versionMessage;
                     if (successCloseBtn) {
                         successCloseBtn.textContent = 'Về Dashboard';
                         successCloseBtn.onclick = function () {
@@ -377,7 +383,7 @@
 
                     const goToExamBtn = document.getElementById('goToExamBtn');
                     if (goToExamBtn) {
-                        goToExamBtn.href = '/Exam/EditExam?id=' + _editExamId;
+                        goToExamBtn.href = '/Exam/EditExam?id=' + savedExamId;
                         goToExamBtn.textContent = 'Tiếp tục sửa';
                     }
 

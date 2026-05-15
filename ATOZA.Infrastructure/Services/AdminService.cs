@@ -43,6 +43,7 @@ namespace ATOZA.Infrastructure.Services
                     UserName = u.UserName,
                     Role = u.Role.ToString(),
                     IsActive = u.IsActive,
+                    ApprovalStatus = u.ApprovalStatus.ToString(),
                     CreatedAt = u.CreatedAt
                 })
                 .ToListAsync();
@@ -54,6 +55,17 @@ namespace ATOZA.Infrastructure.Services
             if (user == null) return false;
 
             user.IsActive = isActive;
+            await _db.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> SetTeacherApprovalStatusAsync(int userId, ApprovalStatus approvalStatus)
+        {
+            var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == userId && u.Role == UserRole.Teacher);
+            if (user == null) return false;
+
+            user.ApprovalStatus = approvalStatus;
+            user.IsActive = approvalStatus == ApprovalStatus.Approved;
             await _db.SaveChangesAsync();
             return true;
         }

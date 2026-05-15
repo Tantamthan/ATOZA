@@ -17,6 +17,7 @@ namespace ATOZA.Application.Abstractions.Persistence
         DbSet<ClassAssignment> ClassAssignments { get; }
         DbSet<Submission> Submissions { get; }
         DbSet<SubmissionDetail> SubmissionDetails { get; }
+        DbSet<ExamAttempt> ExamAttempts { get; }
 
         Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     }

@@ -2,6 +2,7 @@ using ATOZA.Application.Abstractions.Persistence;
 using ATOZA.Application.Abstractions.Services;
 using ATOZA.Application.DTOs.Exam;
 using ATOZA.Domain.Entities;
+using ATOZA.Domain.Exceptions;
 using Microsoft.EntityFrameworkCore;
 
 namespace ATOZA.Infrastructure.Services
@@ -136,7 +137,7 @@ namespace ATOZA.Infrastructure.Services
         public Task<List<Exam>> GetExamsByCreatorAsync(int creatorId)
         {
             return _db.Exams
-                .Where(e => e.CreatorId == creatorId)
+                .Where(e => e.CreatorId == creatorId && !e.IsArchived)
                 .OrderByDescending(e => e.CreatedAt)
                 .ToListAsync();
         }
@@ -145,7 +146,7 @@ namespace ATOZA.Infrastructure.Services
         {
             return _db.Exams
                 .Include(e => e.Creator)
-                .Where(e => e.CreatorId == teacherId || e.IsPublic)
+                .Where(e => !e.IsArchived && (e.CreatorId == teacherId || e.IsPublic))
                 .OrderByDescending(e => e.CreatorId == teacherId)
                 .ThenByDescending(e => e.CreatedAt)
                 .ToListAsync();
@@ -154,7 +155,7 @@ namespace ATOZA.Infrastructure.Services
         public async Task<bool> SetExamVisibilityAsync(int examId, int teacherId, bool isPublic)
         {
             var exam = await _db.Exams.FirstOrDefaultAsync(e =>
-                e.Id == examId && e.CreatorId == teacherId);
+                e.Id == examId && e.CreatorId == teacherId && !e.IsArchived);
 
             if (exam == null)
                 return false;
@@ -162,6 +163,52 @@ namespace ATOZA.Infrastructure.Services
             exam.IsPublic = isPublic;
             await _db.SaveChangesAsync();
             return true;
+        }
+
+        private async Task<Exam> CreateNewVersionAsync(Exam sourceExam, UpdateExamDto dto)
+        {
+            var rootExamId = sourceExam.ParentExamId ?? sourceExam.Id;
+            var maxVersion = await _db.Exams
+                .Where(e => e.Id == rootExamId || e.ParentExamId == rootExamId)
+                .MaxAsync(e => (int?)e.VersionNumber) ?? 1;
+
+            var newExam = new Exam
+            {
+                Title = dto.Title,
+                Description = dto.Description,
+                CreatorId = sourceExam.CreatorId,
+                DurationMinutes = dto.DurationMinutes,
+                ExamMode = Enum.TryParse<ATOZA.Domain.Enums.ExamMode>(dto.ExamMode, true, out var mode)
+                    ? mode
+                    : sourceExam.ExamMode,
+                IsPublic = dto.IsPublic,
+                ParentExamId = rootExamId,
+                VersionNumber = maxVersion + 1,
+                IsArchived = false,
+                StartTime = DateTime.UtcNow,
+                EndTime = DateTime.UtcNow.AddMinutes(dto.DurationMinutes),
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _db.Exams.Add(newExam);
+            await _db.SaveChangesAsync();
+
+            foreach (var q in dto.Questions)
+            {
+                _db.Questions.Add(new Question
+                {
+                    ExamId = newExam.Id,
+                    OrderNumber = q.OrderNumber,
+                    Content = q.Content,
+                    OptionA = q.OptionA,
+                    OptionB = q.OptionB,
+                    OptionC = q.OptionC,
+                    OptionD = q.OptionD,
+                    CorrectAnswer = q.CorrectAnswer
+                });
+            }
+
+            return newExam;
         }
 
         public async Task<PracticeAnswerResultDto> CheckPracticeAnswerAsync(CheckPracticeAnswerDto dto, int studentId)
@@ -222,14 +269,33 @@ namespace ATOZA.Infrastructure.Services
                 .FirstOrDefaultAsync(e => e.Id == examId && e.CreatorId == teacherId);
         }
 
-        public async Task<bool> UpdateExamAsync(UpdateExamDto dto, int teacherId)
+        public async Task<UpdateExamResultDto> UpdateExamAsync(UpdateExamDto dto, int teacherId)
         {
             var exam = await _db.Exams
                 .Include(e => e.Questions)
-                .FirstOrDefaultAsync(e => e.Id == dto.ExamId && e.CreatorId == teacherId);
+                .FirstOrDefaultAsync(e => e.Id == dto.ExamId);
 
             if (exam == null)
-                return false;
+                throw new NotFoundException("Exam", dto.ExamId);
+
+            if (exam.CreatorId != teacherId)
+                throw new UnauthorizedException("Ban khong co quyen chinh sua de thi nay.");
+
+            var examHasHistory = await _db.ClassAssignments.AnyAsync(a => a.ExamId == exam.Id)
+                || await _db.Submissions.AnyAsync(s => s.ExamId == exam.Id);
+
+            if (examHasHistory)
+            {
+                var newExam = await CreateNewVersionAsync(exam, dto);
+                exam.IsArchived = true;
+                await _db.SaveChangesAsync();
+
+                return new UpdateExamResultDto
+                {
+                    ExamId = newExam.Id,
+                    CreatedNewVersion = true
+                };
+            }
 
             // Cập nhật metadata
             exam.Title = dto.Title;
@@ -287,7 +353,11 @@ namespace ATOZA.Infrastructure.Services
             }
 
             await _db.SaveChangesAsync();
-            return true;
+            return new UpdateExamResultDto
+            {
+                ExamId = exam.Id,
+                CreatedNewVersion = false
+            };
         }
 
         public async Task<byte[]?> ExportExamToWordAsync(int examId, int teacherId)

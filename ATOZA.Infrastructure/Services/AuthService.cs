@@ -3,6 +3,7 @@ using ATOZA.Application.Abstractions.Services;
 using ATOZA.Application.DTOs;
 using ATOZA.Domain.Entities;
 using ATOZA.Domain.Enums;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -16,10 +17,9 @@ namespace ATOZA.Infrastructure.Services
 
         public async Task<UserProfileDto?> LoginAsync(string username, string password)
         {
-            var user = await Task.FromResult(
-                _db.Users.FirstOrDefault(u => u.UserName == username));
+            var user = await _db.Users.FirstOrDefaultAsync(u => u.UserName == username);
 
-            if (user == null || !user.IsActive || !VerifyPassword(password, user.PasswordHash))
+            if (user == null || !user.IsActive || !IsApprovedForLogin(user) || !VerifyPassword(password, user.PasswordHash))
                 return null;
 
             if (IsLegacyMd5Hash(user.PasswordHash))
@@ -48,6 +48,10 @@ namespace ATOZA.Infrastructure.Services
             if (role == UserRole.Admin)
                 return (false, "Khong the dang ky tai khoan Admin.");
 
+            var approvalStatus = role == UserRole.Teacher
+                ? ApprovalStatus.Pending
+                : ApprovalStatus.Approved;
+
             var user = new User
             {
                 FullName = dto.FullName,
@@ -55,6 +59,8 @@ namespace ATOZA.Infrastructure.Services
                 UserName = dto.UserName,
                 PasswordHash = HashPassword(dto.Password),
                 Role = role,
+                IsActive = approvalStatus == ApprovalStatus.Approved,
+                ApprovalStatus = approvalStatus,
                 CreatedAt = DateTime.UtcNow
             };
 
@@ -65,8 +71,7 @@ namespace ATOZA.Infrastructure.Services
 
         public Task<bool> IsEmailOrUsernameTakenAsync(string email, string username)
         {
-            return Task.FromResult(
-                _db.Users.Any(u => u.Email == email || u.UserName == username));
+            return _db.Users.AnyAsync(u => u.Email == email || u.UserName == username);
         }
 
         private static string HashPassword(string password)
@@ -119,6 +124,9 @@ namespace ATOZA.Infrastructure.Services
 
         private static bool IsLegacyMd5Hash(string hash) =>
             hash.Length == 32 && hash.All(Uri.IsHexDigit);
+
+        private static bool IsApprovedForLogin(User user) =>
+            user.Role != UserRole.Teacher || user.ApprovalStatus == ApprovalStatus.Approved;
 
         private static bool FixedTimeEquals(string left, string right)
         {

@@ -15,7 +15,7 @@ namespace ATOZA.Application.Abstractions.Services
         Task<bool> SetExamVisibilityAsync(int examId, int teacherId, bool isPublic);
         Task<PracticeAnswerResultDto> CheckPracticeAnswerAsync(CheckPracticeAnswerDto dto, int studentId);
         Task<Exam?> GetExamForEditAsync(int examId, int teacherId);
-        Task<bool> UpdateExamAsync(UpdateExamDto dto, int teacherId);
+        Task<UpdateExamResultDto> UpdateExamAsync(UpdateExamDto dto, int teacherId);
         Task<byte[]?> ExportExamToWordAsync(int examId, int teacherId);
     }
 }

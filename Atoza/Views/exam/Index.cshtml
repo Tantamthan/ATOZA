@@ -16,6 +16,7 @@
                 <form id="examForm">
                     @Html.AntiForgeryToken()
                     <input type="hidden" id="examId" value="@Model.Id" />
+                    <input type="hidden" id="attemptId" value="" />
                     @if (Model.Questions != null && Model.Questions.Any())
                     {
                         foreach (var q in Model.Questions)
@@ -46,6 +47,15 @@
     // --- HÀM BẮT ĐẦU LÀM BÀI ---
     // Đặt hàm này ra ngoài window để đảm bảo nút bấm luôn gọi được
     window.beginExam = function() {
+        if (isExamStarted) return;
+
+        if (typeof startExamAttempt === "function") {
+            startExamAttempt();
+            return;
+        }
+
+        alert("Khong the bat dau bai thi luc nay.");
+        return;
         console.log("Bắt đầu làm bài..."); // Log để debug xem nút có nhận không
 
         // 1. Ẩn màn hình chờ

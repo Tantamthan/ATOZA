@@ -19,6 +19,7 @@ namespace ATOZA.Infrastructure.Persistence
         public DbSet<ClassAssignment> ClassAssignments => Set<ClassAssignment>();
         public DbSet<Submission> Submissions => Set<Submission>();
         public DbSet<SubmissionDetail> SubmissionDetails => Set<SubmissionDetail>();
+        public DbSet<ExamAttempt> ExamAttempts => Set<ExamAttempt>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -42,6 +43,7 @@ namespace ATOZA.Infrastructure.Persistence
                     PasswordHash = "PBKDF2$100000$39Xdq+NQ2Yt9iv9N838zgw==$+JZYl/jpXSEclHFp1LCWzWwVSMI7gqNtQqX3045FutE=",
                     Role = UserRole.Admin,
                     IsActive = true,
+                    ApprovalStatus = ApprovalStatus.Approved,
                     CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc)
                 });
             });
@@ -51,7 +53,10 @@ namespace ATOZA.Infrastructure.Persistence
                 e.ToTable("Exams");
                 e.HasKey(x => x.Id);
                 e.Property(x => x.IsPublic).HasDefaultValue(false);
+                e.Property(x => x.VersionNumber).HasDefaultValue(1);
+                e.Property(x => x.IsArchived).HasDefaultValue(false);
                 e.HasOne(x => x.Creator).WithMany(u => u.Exams).HasForeignKey(x => x.CreatorId);
+                e.HasOne(x => x.ParentExam).WithMany(x => x.Versions).HasForeignKey(x => x.ParentExamId).OnDelete(DeleteBehavior.Restrict);
             });
 
             // Question
@@ -89,8 +94,18 @@ namespace ATOZA.Infrastructure.Persistence
             modelBuilder.Entity<Submission>(e => {
                 e.ToTable("Submissions");
                 e.HasKey(s => s.Id);
+                e.HasIndex(s => new { s.ExamId, s.StudentId }).IsUnique();
                 e.HasOne(s => s.Exam).WithMany(x => x.Submissions).HasForeignKey(s => s.ExamId).OnDelete(DeleteBehavior.Restrict);
                 e.HasOne(s => s.Student).WithMany(u => u.Submissions).HasForeignKey(s => s.StudentId).OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // ExamAttempt
+            modelBuilder.Entity<ExamAttempt>(e => {
+                e.ToTable("ExamAttempts");
+                e.HasKey(a => a.Id);
+                e.HasIndex(a => new { a.ExamId, a.StudentId, a.Status });
+                e.HasOne(a => a.Exam).WithMany(x => x.ExamAttempts).HasForeignKey(a => a.ExamId).OnDelete(DeleteBehavior.Restrict);
+                e.HasOne(a => a.Student).WithMany(u => u.ExamAttempts).HasForeignKey(a => a.StudentId).OnDelete(DeleteBehavior.Restrict);
             });
 
             // SubmissionDetail

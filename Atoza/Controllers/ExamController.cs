@@ -1,6 +1,7 @@
 using ATOZA.Application.Abstractions.Services;
 using ATOZA.Application.DTOs.Exam;
 using ATOZA.Application.DTOs.Submission;
+using ATOZA.Domain.Exceptions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -12,11 +13,19 @@ namespace Atoza_Web.Controllers
     {
         private readonly IExamService _examService;
         private readonly ISubmissionService _submissionService;
+        private readonly IExamAttemptService _examAttemptService;
+        private readonly ILogger<ExamController> _logger;
 
-        public ExamController(IExamService examService, ISubmissionService submissionService)
+        public ExamController(
+            IExamService examService,
+            ISubmissionService submissionService,
+            IExamAttemptService examAttemptService,
+            ILogger<ExamController> logger)
         {
             _examService = examService;
             _submissionService = submissionService;
+            _examAttemptService = examAttemptService;
+            _logger = logger;
         }
 
         private int UserId =>
@@ -68,6 +77,30 @@ namespace Atoza_Web.Controllers
             }
 
             return View(access.Exam);
+        }
+
+        [HttpPost, ValidateAntiForgeryToken]
+        [Authorize(Roles = "Student")]
+        public async Task<IActionResult> StartAttempt([FromBody] StartAttemptDto dto)
+        {
+            if (dto == null || dto.ExamId <= 0)
+                return BadRequest(new { success = false, message = "Du lieu khong hop le." });
+
+            if (UserId <= 0)
+                return Unauthorized(new { success = false, message = "Phien dang nhap khong hop le." });
+
+            var result = await _examAttemptService.StartAttemptAsync(dto.ExamId, UserId);
+            if (!result.Success)
+                return BadRequest(new { success = false, message = result.Message });
+
+            return Ok(new
+            {
+                success = true,
+                attemptId = result.AttemptId,
+                startedAtUtc = result.StartedAtUtc,
+                expiresAtUtc = result.ExpiresAtUtc,
+                serverNowUtc = result.ServerNowUtc
+            });
         }
 
         [HttpPost, ValidateAntiForgeryToken]
@@ -167,18 +200,31 @@ namespace Atoza_Web.Controllers
 
             try
             {
-                bool updated = await _examService.UpdateExamAsync(dto, UserId);
-                if (!updated)
-                    return NotFound(new { success = false, message = "Khong tim thay de thi hoac ban khong co quyen." });
+                var result = await _examService.UpdateExamAsync(dto, UserId);
 
-                return Ok(new { success = true, examId = dto.ExamId });
+                return Ok(new
+                {
+                    success = true,
+                    examId = result.ExamId,
+                    createdNewVersion = result.CreatedNewVersion
+                });
+            }
+            catch (NotFoundException ex)
+            {
+                _logger.LogWarning(ex, "Exam {ExamId} was not found for update by user {UserId}.", dto.ExamId, UserId);
+                return NotFound(new { success = false, message = "Khong tim thay de thi." });
+            }
+            catch (ATOZA.Domain.Exceptions.UnauthorizedException ex)
+            {
+                _logger.LogWarning(ex, "User {UserId} is not allowed to update exam {ExamId}.", UserId, dto.ExamId);
+                return StatusCode(StatusCodes.Status403Forbidden, new { success = false, message = "Ban khong co quyen chinh sua de thi nay." });
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[UpdateExamApi] Error: {ex.Message}");
-                System.Diagnostics.Debug.WriteLine($"[UpdateExamApi] Inner: {ex.InnerException?.Message}");
+                _logger.LogError(ex, "Failed to update exam {ExamId} for user {UserId}.", dto.ExamId, UserId);
+
                 return StatusCode(StatusCodes.Status500InternalServerError,
-                    new { success = false, message = "Khong the cap nhat de thi luc nay. Chi tiet: " + ex.InnerException?.Message ?? ex.Message });
+                    new { success = false, message = "Khong the cap nhat de thi luc nay." });
             }
         }
     }

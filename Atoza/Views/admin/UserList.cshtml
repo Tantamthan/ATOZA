@@ -30,6 +30,7 @@
                     <th>Email</th>
                     <th>UserName</th>
                     <th>Role</th>
+                    <th>Duyet</th>
                     <th>Ngay tao</th>
                     <th>Trang thai</th>
                     <th class="text-end">Thao tac</th>
@@ -43,6 +44,18 @@
                         <td>@user.Email</td>
                         <td>@user.UserName</td>
                         <td><span class="badge text-bg-light">@user.Role</span></td>
+                        <td>
+                            @if (user.Role == "Teacher")
+                            {
+                                <span class="badge @(user.ApprovalStatus == "Approved" ? "text-bg-success" : user.ApprovalStatus == "Rejected" ? "text-bg-danger" : "text-bg-warning")">
+                                    @user.ApprovalStatus
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="text-muted">-</span>
+                            }
+                        </td>
                         <td>@user.CreatedAt.ToString("dd/MM/yyyy")</td>
                         <td>
                             <span class="admin-status @(user.IsActive ? "is-active" : "is-inactive")">
@@ -50,6 +63,24 @@
                             </span>
                         </td>
                         <td class="text-end">
+                            @if (user.Role == "Teacher" && user.ApprovalStatus != "Approved")
+                            {
+                                <form asp-action="SetTeacherApproval" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="userId" value="@user.Id" />
+                                    <input type="hidden" name="approvalStatus" value="Approved" />
+                                    <button type="submit" class="btn btn-sm btn-outline-success">Duyet</button>
+                                </form>
+                            }
+                            @if (user.Role == "Teacher" && user.ApprovalStatus != "Rejected")
+                            {
+                                <form asp-action="SetTeacherApproval" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="userId" value="@user.Id" />
+                                    <input type="hidden" name="approvalStatus" value="Rejected" />
+                                    <button type="submit" class="btn btn-sm btn-outline-warning">Tu choi</button>
+                                </form>
+                            }
                             <form asp-action="ToggleUserStatus" method="post" class="d-inline">
                                 @Html.AntiForgeryToken()
                                 <input type="hidden" name="userId" value="@user.Id" />

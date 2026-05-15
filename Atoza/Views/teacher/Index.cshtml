@@ -1,138 +1,222 @@
 @model IEnumerable<ATOZA.Domain.Entities.Exam>
 
 @{
-    ViewBag.Title = "Dashboard Giao Vien";
+    ViewBag.Title = "Dashboard Giáo Viên";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <div class="container py-5">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fw-bold text-dark">Tong quan</h2>
-        <div class="d-flex gap-2">
-            <a href="@Url.Action("CreateClass", "Teacher")" class="btn btn-warning text-white fw-bold rounded-pill px-4">
-                <i class="fa-solid fa-plus me-2"></i>Tao lop
+
+    <!-- ── Page Header ── -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-5 gap-3">
+        <div>
+            <h2 class="fw-bold mb-1" style="color:var(--dark);letter-spacing:-0.02em;font-size:1.75rem;">
+                Tổng quan
+            </h2>
+            <p class="text-muted mb-0" style="font-size:0.9rem;">
+                Xin chào! Đây là tổng quan hoạt động của bạn hôm nay.
+            </p>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+            <a href="@Url.Action("CreateClass", "Teacher")" class="btn btn-outline-orange rounded-pill px-4 fw-600" style="font-weight:600;">
+                <i class="fa-solid fa-plus me-2"></i>Tạo lớp mới
             </a>
-            <a href="@Url.Action("AssignExam", "Teacher")" class="btn btn-primary text-white fw-bold rounded-pill px-4">
-                <i class="fa-solid fa-paper-plane me-2"></i>Giao bai
+            <a href="@Url.Action("AssignExam", "Teacher")" class="btn btn-orange rounded-pill px-4 fw-600" style="font-weight:600;">
+                <i class="fa-solid fa-paper-plane me-2"></i>Giao bài
             </a>
         </div>
     </div>
 
+    <!-- ── Alerts ── -->
     @if (TempData["Success"] != null)
     {
-        <div class="alert alert-success">@TempData["Success"]</div>
+        <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+            <i class="fa-solid fa-circle-check me-2"></i> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
     }
     @if (TempData["Error"] != null)
     {
-        <div class="alert alert-danger">@TempData["Error"]</div>
+        <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+            <i class="fa-solid fa-circle-exclamation me-2"></i> @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
     }
 
+    <!-- ── Stat Cards ── -->
     <div class="row g-4 mb-5">
-        <div class="col-md-4">
-            <div class="card border-0 shadow-sm h-100" style="background-color: #fff3e6;">
-                <div class="card-body p-4 d-flex align-items-center">
-                    <div class="fs-1 text-warning me-3"><i class="fa-solid fa-chalkboard-user"></i></div>
-                    <div>
-                        <h3 class="fw-bold mb-0">@ViewBag.ClassCount</h3>
-                        <p class="text-muted mb-0">Lop hoc dang quan ly</p>
-                    </div>
+        <div class="col-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-icon orange">
+                    <i class="fa-solid fa-chalkboard-user"></i>
+                </div>
+                <div>
+                    <div class="stat-value">@ViewBag.ClassCount</div>
+                    <div class="stat-label">Lớp học</div>
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="card border-0 shadow-sm h-100" style="background-color: #e6f7ff;">
-                <div class="card-body p-4 d-flex align-items-center">
-                    <div class="fs-1 text-primary me-3"><i class="fa-solid fa-file-signature"></i></div>
-                    <div>
-                        <h3 class="fw-bold mb-0">@(Model?.Count() ?? 0)</h3>
-                        <p class="text-muted mb-0">De thi cua toi</p>
-                    </div>
+        <div class="col-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-icon blue">
+                    <i class="fa-solid fa-file-signature"></i>
+                </div>
+                <div>
+                    <div class="stat-value">@(Model?.Count() ?? 0)</div>
+                    <div class="stat-label">Đề thi</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-icon green">
+                    <i class="fa-solid fa-users"></i>
+                </div>
+                <div>
+                    <div class="stat-value">@(ViewBag.StudentCount ?? 0)</div>
+                    <div class="stat-label">Học sinh</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-icon purple">
+                    <i class="fa-solid fa-clipboard-check"></i>
+                </div>
+                <div>
+                    <div class="stat-value">@(ViewBag.SubmissionCount ?? 0)</div>
+                    <div class="stat-label">Bài nộp</div>
                 </div>
             </div>
         </div>
     </div>
 
-    <h4 class="fw-bold mb-3">Chuc nang quan ly</h4>
-    <div class="row g-3 mb-5">
-        <div class="col-md-3">
-            <a href="@Url.Action("ClassList", "Teacher")" class="card text-decoration-none shadow-sm hover-card border-0">
-                <div class="card-body text-center p-4">
-                    <i class="fa-solid fa-users-rectangle fs-2 text-warning mb-3"></i>
-                    <h5 class="text-dark fw-bold">Danh sach lop</h5>
-                </div>
-            </a>
-        </div>
-        <div class="col-md-3">
-            <a href="@Url.Action("CreateExam", "Exam")" class="card text-decoration-none shadow-sm hover-card border-0">
-                <div class="card-body text-center p-4">
-                    <i class="fa-solid fa-file-circle-plus fs-2 text-warning mb-3"></i>
-                    <h5 class="text-dark fw-bold">Tao de thi</h5>
-                </div>
-            </a>
+    <!-- ── Quick Actions ── -->
+    <div class="mb-5">
+        <h5 class="fw-bold mb-3" style="color:var(--dark);">Chức năng quản lý</h5>
+        <div class="row g-3">
+            <div class="col-6 col-md-3">
+                <a href="@Url.Action("ClassList", "Teacher")" class="func-card">
+                    <div class="func-card-icon"><i class="fa-solid fa-users-rectangle"></i></div>
+                    <div class="fw-bold" style="color:var(--dark);font-size:0.9rem;">Danh sách lớp</div>
+                </a>
+            </div>
+            <div class="col-6 col-md-3">
+                <a href="@Url.Action("CreateExam", "Exam")" class="func-card">
+                    <div class="func-card-icon"><i class="fa-solid fa-file-circle-plus"></i></div>
+                    <div class="fw-bold" style="color:var(--dark);font-size:0.9rem;">Tạo đề thi</div>
+                </a>
+            </div>
+            <div class="col-6 col-md-3">
+                <a href="@Url.Action("AssignExam", "Teacher")" class="func-card">
+                    <div class="func-card-icon"><i class="fa-solid fa-paper-plane"></i></div>
+                    <div class="fw-bold" style="color:var(--dark);font-size:0.9rem;">Giao bài</div>
+                </a>
+            </div>
+            <div class="col-6 col-md-3">
+                <a href="#exam-table" class="func-card">
+                    <div class="func-card-icon"><i class="fa-solid fa-chart-bar"></i></div>
+                    <div class="fw-bold" style="color:var(--dark);font-size:0.9rem;">Xem kết quả</div>
+                </a>
+            </div>
         </div>
     </div>
 
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h4 class="fw-bold mb-0">De thi cua toi</h4>
-        <a href="@Url.Action("CreateExam", "Exam")" class="btn btn-outline-primary">
-            <i class="fa-solid fa-file-circle-plus me-2"></i>Tao de moi
-        </a>
-    </div>
+    <!-- ── Exam Table ── -->
+    <div id="exam-table">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="fw-bold mb-0" style="color:var(--dark);">Đề thi của tôi</h5>
+            <a href="@Url.Action("CreateExam", "Exam")" class="btn btn-sm btn-orange rounded-pill px-3">
+                <i class="fa-solid fa-plus me-1"></i> Tạo đề mới
+            </a>
+        </div>
 
-    <div class="table-responsive">
-        <table class="table table-hover align-middle shadow-sm">
-            <thead class="table-light">
-                <tr>
-                    <th>Ten de</th>
-                    <th>Thoi gian</th>
-                    <th>Che do chia se</th>
-                    <th class="text-end">Thao tac</th>
-                </tr>
-            </thead>
-            <tbody>
-                @if (Model != null && Model.Any())
-                {
-                    foreach (var exam in Model)
-                    {
-                        <tr>
-                            <td class="fw-semibold">@exam.Title</td>
-                            <td>@exam.DurationMinutes phut</td>
-                            <td>
-                                @if (exam.IsPublic)
-                                {
-                                    <span class="badge bg-success">Cong khai</span>
-                                }
-                                else
-                                {
-                                    <span class="badge bg-secondary">Rieng tu</span>
-                                }
-                            </td>
-                            <td class="text-end">
-                                <a href="@Url.Action("EditExam", "Exam", new { id = exam.Id })" class="btn btn-sm btn-outline-warning me-1">
-                                    <i class="fa-solid fa-pen-to-square me-1"></i>Sua de
-                                </a>
-                                <a href="@Url.Action("ExportExamWord", "Teacher", new { id = exam.Id })" class="btn btn-sm btn-outline-info me-1">
-                                    <i class="fa-solid fa-file-word me-1"></i>Xuat Word
-                                </a>
-                                <form action="@Url.Action("SetExamVisibility", "Teacher")" method="post" class="d-inline">
-                                    @Html.AntiForgeryToken()
-                                    <input type="hidden" name="examId" value="@exam.Id" />
-                                    <input type="hidden" name="isPublic" value="@(exam.IsPublic ? "false" : "true")" />
-                                    <button type="submit" class="btn btn-sm @(exam.IsPublic ? "btn-outline-secondary" : "btn-outline-success")">
-                                        @(exam.IsPublic ? "Chuyen rieng tu" : "Mo cong khai")
-                                    </button>
-                                </form>
-                            </td>
-                        </tr>
-                    }
-                }
-                else
-                {
-                    <tr>
-                        <td colspan="4" class="text-center text-muted py-4">Ban chua co de thi nao.</td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+        <div class="bg-white rounded-xl border overflow-hidden" style="border-color:var(--border)!important;">
+            @if (Model != null && Model.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table mb-0">
+                        <thead>
+                            <tr>
+                                <th>Tên đề thi</th>
+                                <th>Thời gian</th>
+                                <th>Trạng thái</th>
+                                <th class="text-end">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var exam in Model)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div style="width:36px;height:36px;background:var(--primary-light);border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                                <i class="fa-solid fa-file-signature" style="color:var(--primary);font-size:0.85rem;"></i>
+                                            </div>
+                                            <div>
+                                                <div class="fw-600" style="font-weight:600;color:var(--dark);">@exam.Title</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="text-muted" style="font-size:0.875rem;">
+                                        <i class="fa-regular fa-clock me-1"></i> @exam.DurationMinutes phút
+                                    </td>
+                                    <td>
+                                        @if (exam.IsPublic)
+                                        {
+                                            <span class="badge rounded-pill px-3 py-2" style="background:#f0fdf4;color:#166534;font-size:0.75rem;font-weight:600;">
+                                                <i class="fa-solid fa-globe me-1"></i> Công khai
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge rounded-pill px-3 py-2" style="background:var(--bg-light);color:var(--text-muted);font-size:0.75rem;font-weight:600;">
+                                                <i class="fa-solid fa-lock me-1"></i> Riêng tư
+                                            </span>
+                                        }
+                                    </td>
+                                    <td class="text-end">
+                                        <div class="d-flex gap-1 justify-content-end">
+                                            <a href="@Url.Action("EditExam", "Exam", new { id = exam.Id })"
+                                               class="btn btn-sm rounded-pill px-3"
+                                               style="background:var(--bg-light);color:var(--text);border:1px solid var(--border);font-size:0.8rem;font-weight:500;">
+                                                <i class="fa-solid fa-pen me-1"></i> Sửa
+                                            </a>
+                                            <a href="@Url.Action("ExportExamWord", "Teacher", new { id = exam.Id })"
+                                               class="btn btn-sm rounded-pill px-3"
+                                               style="background:#eff6ff;color:#3b82f6;border:1px solid #bfdbfe;font-size:0.8rem;font-weight:500;">
+                                                <i class="fa-solid fa-file-word me-1"></i> Word
+                                            </a>
+                                            <form action="@Url.Action("SetExamVisibility", "Teacher")" method="post" class="d-inline">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="examId" value="@exam.Id" />
+                                                <input type="hidden" name="isPublic" value="@(exam.IsPublic ? "false" : "true")" />
+                                                <button type="submit" class="btn btn-sm rounded-pill px-3"
+                                                        style="background:@(exam.IsPublic ? "var(--bg-light)" : "#f0fdf4");color:@(exam.IsPublic ? "var(--text-muted)" : "#166534");border:1px solid @(exam.IsPublic ? "var(--border)" : "#bbf7d0");font-size:0.8rem;font-weight:500;">
+                                                    @(exam.IsPublic ? "Ẩn" : "Công khai")
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="empty-state" style="background:transparent;border:none;">
+                    <div class="empty-state-icon">
+                        <i class="fa-solid fa-file-circle-xmark"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2" style="color:var(--dark);">Chưa có đề thi nào</h5>
+                    <p class="text-muted mb-3" style="font-size:0.9rem;">Hãy tạo đề thi đầu tiên của bạn ngay bây giờ.</p>
+                    <a href="@Url.Action("CreateExam", "Exam")" class="btn btn-orange rounded-pill px-4">
+                        <i class="fa-solid fa-plus me-2"></i>Tạo đề thi
+                    </a>
+                </div>
+            }
+        </div>
     </div>
 </div>

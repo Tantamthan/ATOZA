@@ -30,7 +30,7 @@
             @foreach (var item in Model)
             {
                 // Logic kiểm tra thời gian
-                var now = DateTime.Now;
+                var now = DateTime.UtcNow;
                 bool isUpcoming = now < item.AvailableFrom;
                 bool isExpired = now > item.DueDate;
                 bool canDo = !isUpcoming && !isExpired;
