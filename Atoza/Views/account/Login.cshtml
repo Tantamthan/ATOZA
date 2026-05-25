@@ -367,11 +367,11 @@
             @Html.AntiForgeryToken()
 
             <div class="field-wrap">
-                <label class="field-label" for="username">Tên đăng nhập</label>
+                <label class="field-label" for="username">Tên đăng nhập hoặc email</label>
                 <div style="position:relative;">
                     <i class="fa-solid fa-user field-icon"></i>
                     <input id="username" type="text" name="username" class="field-input"
-                           placeholder="Nhập username của bạn" required autocomplete="username"
+                           placeholder="Nhập tên đăng nhập hoặc email" required autocomplete="username"
                            value="@(Context.Request.Cookies["RememberMe_Username"] ?? "")" />
                 </div>
             </div>
@@ -394,7 +394,7 @@
                     <input type="checkbox" name="rememberMe" value="true" id="chkRemember">
                     Ghi nhớ đăng nhập
                 </label>
-                <a href="#" class="forgot-link">Quên mật khẩu?</a>
+                <a href="@Url.Action("ForgotPassword", "Account")" class="forgot-link">Quên mật khẩu?</a>
             </div>
 
             @if (ViewBag.Error != null)

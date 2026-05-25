@@ -20,6 +20,7 @@ namespace ATOZA.Infrastructure.Persistence
         public DbSet<Submission> Submissions => Set<Submission>();
         public DbSet<SubmissionDetail> SubmissionDetails => Set<SubmissionDetail>();
         public DbSet<ExamAttempt> ExamAttempts => Set<ExamAttempt>();
+        public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -46,6 +47,19 @@ namespace ATOZA.Infrastructure.Persistence
                     ApprovalStatus = ApprovalStatus.Approved,
                     CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc)
                 });
+            });
+
+            // Password reset token
+            modelBuilder.Entity<PasswordResetToken>(e => {
+                e.ToTable("PasswordResetTokens");
+                e.HasKey(x => x.Id);
+                e.Property(x => x.TokenHash).IsRequired().HasMaxLength(128);
+                e.HasIndex(x => x.TokenHash).IsUnique();
+                e.HasIndex(x => new { x.UserId, x.UsedAtUtc });
+                e.HasOne(x => x.User)
+                    .WithMany(u => u.PasswordResetTokens)
+                    .HasForeignKey(x => x.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
             });
 
             // Exam

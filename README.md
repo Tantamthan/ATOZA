@@ -62,7 +62,7 @@
 
 | Thành phần | Phiên bản / Công nghệ |
 |---|---|
-| Framework | ASP.NET Core MVC (.NET 10.0) |
+| Framework | ASP.NET Core MVC (.NET 9.0) |
 | Language | C# |
 | ORM | Entity Framework Core 9.0.14 |
 | Database | SQL Server (LocalDB `(localdb)\MSSQLLocalDB`) |
@@ -101,7 +101,7 @@ Xem chi tiết kiến trúc tại [ARCHITECTURE.md](./ARCHITECTURE.md).
 ## Hướng dẫn cài đặt
 
 ### Yêu cầu hệ thống
-- [.NET 10 SDK](https://dotnet.microsoft.com/download)
+- [.NET 9 SDK](https://dotnet.microsoft.com/download)
 - SQL Server LocalDB (cài cùng Visual Studio) hoặc SQL Server bất kỳ
 
 ### Các bước thực hiện
@@ -123,18 +123,47 @@ Mở file `Atoza/appsettings.json`, chỉnh `DefaultConnection` nếu cần:
 }
 ```
 
-**3. Áp dụng Database Migration**
+**3. Cấu hình đăng nhập Google và Gmail SMTP (tùy chọn)**
+
+File `Atoza/appsettings.Local.json` được ignore để tránh lộ secret. Nếu cần dùng đăng nhập Google hoặc quên mật khẩu qua Gmail SMTP, copy file mẫu:
+
 ```bash
-cd ATOZA.Infrastructure
-dotnet ef database update --startup-project ../Atoza
+copy Atoza\appsettings.Local.example.json Atoza\appsettings.Local.json
+```
+
+Sau đó điền thông tin thật:
+
+```json
+{
+  "Authentication": {
+    "Google": {
+      "ClientId": "your-google-client-id",
+      "ClientSecret": "your-google-client-secret"
+    }
+  },
+  "Smtp": {
+    "Host": "smtp.gmail.com",
+    "Port": 587,
+    "EnableSsl": true,
+    "UserName": "your-gmail@gmail.com",
+    "Password": "your-gmail-app-password",
+    "FromName": "Atoza"
+  }
+}
+```
+
+Gmail SMTP cần bật xác minh 2 bước và tạo App Password tại `https://myaccount.google.com/apppasswords`.
+
+**4. Áp dụng Database Migration**
+```bash
+dotnet ef database update --project ATOZA.Infrastructure/ATOZA.Infrastructure.csproj --startup-project Atoza/Atoza_Web.csproj
 ```
 
 > **Lưu ý:** Migration `AddAdminSupport` sẽ tự động tạo tài khoản Admin mặc định (xem mục [Tài khoản mặc định](#tài-khoản-mặc-định)).
 
-**4. Chạy ứng dụng**
+**5. Chạy ứng dụng**
 ```bash
-cd Atoza
-dotnet run
+dotnet run --project Atoza/Atoza_Web.csproj --launch-profile https
 ```
 
 Ứng dụng sẽ chạy tại `https://localhost:...` (xem terminal để biết port chính xác).
@@ -146,6 +175,8 @@ dotnet run
 | Key | Vị trí | Mô tả |
 |---|---|---|
 | `ConnectionStrings:DefaultConnection` | `appsettings.json` | Chuỗi kết nối SQL Server |
+| `Authentication:Google:*` | `appsettings.Local.json` | OAuth đăng nhập Google |
+| `Smtp:*` | `appsettings.Local.json` | Gửi email đặt lại mật khẩu qua Gmail SMTP |
 | `Cookie Authentication ExpireTimeSpan` | `Program.cs` | 30 phút (sliding), 30 ngày nếu RememberMe |
 | `Session:IdleTimeout` | `Program.cs` | Thời gian hết phiên: **30 phút** |
 | `AntiForgery Header` | `Program.cs` | Header name: `RequestVerificationToken` |

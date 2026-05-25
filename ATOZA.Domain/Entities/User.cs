@@ -19,5 +19,6 @@ namespace ATOZA.Domain.Entities
         public ICollection<Exam> Exams { get; set; } = new List<Exam>();
         public ICollection<Submission> Submissions { get; set; } = new List<Submission>();
         public ICollection<ExamAttempt> ExamAttempts { get; set; } = new List<ExamAttempt>();
+        public ICollection<PasswordResetToken> PasswordResetTokens { get; set; } = new List<PasswordResetToken>();
     }
 }

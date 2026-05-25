@@ -16,12 +16,20 @@ namespace Atoza_Web.Controllers
         private const string GoogleFullNameSessionKey = "GoogleLogin:FullName";
 
         private readonly IAuthService _authService;
+        private readonly IEmailSender _emailSender;
         private readonly IAuthenticationSchemeProvider _schemeProvider;
+        private readonly ILogger<AccountController> _logger;
 
-        public AccountController(IAuthService authService, IAuthenticationSchemeProvider schemeProvider)
+        public AccountController(
+            IAuthService authService,
+            IEmailSender emailSender,
+            IAuthenticationSchemeProvider schemeProvider,
+            ILogger<AccountController> logger)
         {
             _authService = authService;
+            _emailSender = emailSender;
             _schemeProvider = schemeProvider;
+            _logger = logger;
         }
 
         [AllowAnonymous]
@@ -61,7 +69,7 @@ namespace Atoza_Web.Controllers
             if (!ModelState.IsValid) return View(dto);
             if (string.Equals(dto.Role, "Admin", StringComparison.OrdinalIgnoreCase))
             {
-                ModelState.AddModelError(nameof(dto.Role), "Khong the dang ky tai khoan Admin.");
+                ModelState.AddModelError(nameof(dto.Role), "Không thể đăng ký tài khoản Admin.");
                 return View(dto);
             }
 
@@ -78,7 +86,7 @@ namespace Atoza_Web.Controllers
 
                 if (profile == null)
                 {
-                    TempData["AuthMessage"] = "Tai khoan giao vien da duoc tao va dang cho Admin duyet.";
+                    TempData["AuthMessage"] = "Tài khoản giáo viên đã được tạo và đang chờ Admin duyệt.";
                     return RedirectToAction("Login");
                 }
 
@@ -110,13 +118,89 @@ namespace Atoza_Web.Controllers
             var profile = await _authService.LoginAsync(dto.UserName, dto.Password);
             if (profile == null)
             {
-                ViewBag.Error = "Sai tai khoan hoac mat khau";
+                ViewBag.Error = "Sai tài khoản hoặc mật khẩu.";
                 return View(dto);
             }
 
             await SignInApplicationAsync(profile, dto.RememberMe);
 
             return RedirectByRole(profile.Role);
+        }
+
+        [AllowAnonymous]
+        public IActionResult ForgotPassword()
+        {
+            return View(new ForgotPasswordDto());
+        }
+
+        [HttpPost, ValidateAntiForgeryToken]
+        [AllowAnonymous]
+        public async Task<IActionResult> ForgotPassword(ForgotPasswordDto dto)
+        {
+            if (!ModelState.IsValid) return View(dto);
+
+            if (!_emailSender.IsConfigured)
+            {
+                ViewBag.SmtpMissing = true;
+                return View(dto);
+            }
+
+            var result = await _authService.RequestPasswordResetAsync(dto.Email);
+            ViewBag.RequestSent = true;
+
+            if (!string.IsNullOrWhiteSpace(result.ResetToken))
+            {
+                var resetLink = Url.Action(
+                    nameof(ResetPassword),
+                    "Account",
+                    new { token = result.ResetToken },
+                    Request.Scheme);
+
+                if (_emailSender.IsConfigured && !string.IsNullOrWhiteSpace(resetLink))
+                {
+                    try
+                    {
+                        await _emailSender.SendPasswordResetAsync(dto.Email.Trim(), resetLink, HttpContext.RequestAborted);
+                        ViewBag.EmailSent = true;
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Không gửi được email đặt lại mật khẩu đến {Email}.", dto.Email);
+                        ViewBag.EmailSendFailed = true;
+                    }
+                }
+            }
+
+            return View(dto);
+        }
+
+        [AllowAnonymous]
+        public IActionResult ResetPassword(string token)
+        {
+            if (string.IsNullOrWhiteSpace(token))
+            {
+                TempData["AuthError"] = "Liên kết đặt lại mật khẩu không hợp lệ.";
+                return RedirectToAction("Login");
+            }
+
+            return View(new ResetPasswordDto { Token = token });
+        }
+
+        [HttpPost, ValidateAntiForgeryToken]
+        [AllowAnonymous]
+        public async Task<IActionResult> ResetPassword(ResetPasswordDto dto)
+        {
+            if (!ModelState.IsValid) return View(dto);
+
+            var (success, error) = await _authService.ResetPasswordAsync(dto);
+            if (!success)
+            {
+                ViewBag.Error = error;
+                return View(dto);
+            }
+
+            TempData["AuthMessage"] = "Mật khẩu đã được cập nhật. Vui lòng đăng nhập lại.";
+            return RedirectToAction("Login");
         }
 
         [HttpPost, ValidateAntiForgeryToken]
@@ -126,7 +210,7 @@ namespace Atoza_Web.Controllers
             if (!string.Equals(provider, GoogleProvider, StringComparison.OrdinalIgnoreCase) ||
                 await _schemeProvider.GetSchemeAsync(provider) == null)
             {
-                TempData["AuthError"] = "Dang nhap Google chua duoc cau hinh.";
+                TempData["AuthError"] = "Đăng nhập Google chưa được cấu hình.";
                 return RedirectToAction("Login");
             }
 
@@ -142,14 +226,14 @@ namespace Atoza_Web.Controllers
         {
             if (!string.IsNullOrWhiteSpace(remoteError))
             {
-                TempData["AuthError"] = "Google khong xac thuc duoc tai khoan.";
+                TempData["AuthError"] = "Google không xác thực được tài khoản.";
                 return RedirectToAction("Login");
             }
 
             var externalResult = await HttpContext.AuthenticateAsync(ExternalCookieScheme);
             if (!externalResult.Succeeded || externalResult.Principal == null)
             {
-                TempData["AuthError"] = "Khong doc duoc thong tin dang nhap Google.";
+                TempData["AuthError"] = "Không đọc được thông tin đăng nhập Google.";
                 return RedirectToAction("Login");
             }
 
@@ -162,7 +246,7 @@ namespace Atoza_Web.Controllers
 
             if (string.IsNullOrWhiteSpace(email))
             {
-                TempData["AuthError"] = "Tai khoan Google khong co email hop le.";
+                TempData["AuthError"] = "Tài khoản Google không có email hợp lệ.";
                 return RedirectToAction("Login");
             }
 
@@ -176,7 +260,7 @@ namespace Atoza_Web.Controllers
 
             if (await _authService.IsEmailRegisteredAsync(email))
             {
-                TempData["AuthError"] = "Tai khoan voi email Google nay chua duoc kich hoat hoac chua duoc duyet.";
+                TempData["AuthError"] = "Tài khoản với email Google này chưa được kích hoạt hoặc chưa được duyệt.";
                 return RedirectToAction("Login");
             }
 

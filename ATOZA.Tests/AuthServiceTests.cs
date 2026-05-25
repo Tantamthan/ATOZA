@@ -62,6 +62,32 @@ public class AuthServiceTests
     }
 
     [Fact]
+    public async Task LoginAsync_WithEmail_ReturnsProfile()
+    {
+        await using var db = CreateDbContext();
+        db.Users.Add(new User
+        {
+            Id = 13,
+            FullName = "Email Login Student",
+            Email = "email-login@example.com",
+            UserName = "emaillogin",
+            PasswordHash = Md5("secret"),
+            Role = UserRole.Student,
+            IsActive = true,
+            ApprovalStatus = ApprovalStatus.Approved,
+            CreatedAt = DateTime.UtcNow
+        });
+        await db.SaveChangesAsync();
+
+        var service = new AuthService(db);
+
+        var profile = await service.LoginAsync("email-login@example.com", "secret");
+
+        Assert.NotNull(profile);
+        Assert.Equal("emaillogin", profile.UserName);
+    }
+
+    [Fact]
     public async Task LoginWithGoogleAsync_WithExistingActiveUser_ReturnsProfile()
     {
         await using var db = CreateDbContext();
@@ -133,6 +159,133 @@ public class AuthServiceTests
         var user = await db.Users.SingleAsync(u => u.Email == "googleteacher@example.com");
         Assert.False(user.IsActive);
         Assert.Equal(ApprovalStatus.Pending, user.ApprovalStatus);
+    }
+
+    [Fact]
+    public async Task RequestPasswordResetAsync_WithExistingActiveUser_CreatesToken()
+    {
+        await using var db = CreateDbContext();
+        db.Users.Add(new User
+        {
+            Id = 20,
+            FullName = "Reset Student",
+            Email = "reset@example.com",
+            UserName = "resetstudent",
+            PasswordHash = Md5("oldsecret"),
+            Role = UserRole.Student,
+            IsActive = true,
+            ApprovalStatus = ApprovalStatus.Approved,
+            CreatedAt = DateTime.UtcNow
+        });
+        await db.SaveChangesAsync();
+
+        var service = new AuthService(db);
+
+        var result = await service.RequestPasswordResetAsync("reset@example.com");
+
+        Assert.True(result.EmailExists);
+        Assert.False(string.IsNullOrWhiteSpace(result.ResetToken));
+
+        var token = await db.PasswordResetTokens.SingleAsync();
+        Assert.Equal(20, token.UserId);
+        Assert.Null(token.UsedAtUtc);
+        Assert.True(token.ExpiresAtUtc > DateTime.UtcNow);
+    }
+
+    [Fact]
+    public async Task RequestPasswordResetAsync_WithInactiveUser_DoesNotCreateToken()
+    {
+        await using var db = CreateDbContext();
+        db.Users.Add(new User
+        {
+            Id = 21,
+            FullName = "Inactive Student",
+            Email = "inactive@example.com",
+            UserName = "inactive",
+            PasswordHash = Md5("oldsecret"),
+            Role = UserRole.Student,
+            IsActive = false,
+            ApprovalStatus = ApprovalStatus.Approved,
+            CreatedAt = DateTime.UtcNow
+        });
+        await db.SaveChangesAsync();
+
+        var service = new AuthService(db);
+
+        var result = await service.RequestPasswordResetAsync("inactive@example.com");
+
+        Assert.False(result.EmailExists);
+        Assert.Null(result.ResetToken);
+        Assert.False(await db.PasswordResetTokens.AnyAsync());
+    }
+
+    [Fact]
+    public async Task ResetPasswordAsync_WithValidToken_ChangesPasswordAndConsumesToken()
+    {
+        await using var db = CreateDbContext();
+        db.Users.Add(new User
+        {
+            Id = 22,
+            FullName = "Reset Login Student",
+            Email = "reset-login@example.com",
+            UserName = "resetlogin",
+            PasswordHash = Md5("oldsecret"),
+            Role = UserRole.Student,
+            IsActive = true,
+            ApprovalStatus = ApprovalStatus.Approved,
+            CreatedAt = DateTime.UtcNow
+        });
+        await db.SaveChangesAsync();
+
+        var service = new AuthService(db);
+        var request = await service.RequestPasswordResetAsync("reset-login@example.com");
+
+        var result = await service.ResetPasswordAsync(new ResetPasswordDto
+        {
+            Token = request.ResetToken!,
+            Password = "newsecret",
+            ConfirmPassword = "newsecret"
+        });
+
+        Assert.True(result.Success);
+        Assert.NotNull((await db.PasswordResetTokens.SingleAsync()).UsedAtUtc);
+        Assert.Null(await service.LoginAsync("resetlogin", "oldsecret"));
+        Assert.NotNull(await service.LoginAsync("resetlogin", "newsecret"));
+    }
+
+    [Fact]
+    public async Task ResetPasswordAsync_WithExpiredToken_ReturnsError()
+    {
+        await using var db = CreateDbContext();
+        db.Users.Add(new User
+        {
+            Id = 23,
+            FullName = "Expired Reset Student",
+            Email = "expired-reset@example.com",
+            UserName = "expiredreset",
+            PasswordHash = Md5("oldsecret"),
+            Role = UserRole.Student,
+            IsActive = true,
+            ApprovalStatus = ApprovalStatus.Approved,
+            CreatedAt = DateTime.UtcNow
+        });
+        await db.SaveChangesAsync();
+
+        var service = new AuthService(db);
+        var request = await service.RequestPasswordResetAsync("expired-reset@example.com");
+        var token = await db.PasswordResetTokens.SingleAsync();
+        token.ExpiresAtUtc = DateTime.UtcNow.AddMinutes(-1);
+        await db.SaveChangesAsync();
+
+        var result = await service.ResetPasswordAsync(new ResetPasswordDto
+        {
+            Token = request.ResetToken!,
+            Password = "newsecret",
+            ConfirmPassword = "newsecret"
+        });
+
+        Assert.False(result.Success);
+        Assert.Null(await service.LoginAsync("expiredreset", "newsecret"));
     }
 
     private static ATOZADbContext CreateDbContext()

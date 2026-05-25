@@ -17,7 +17,9 @@ namespace ATOZA.Infrastructure.Services
 
         public async Task<UserProfileDto?> LoginAsync(string username, string password)
         {
-            var user = await _db.Users.FirstOrDefaultAsync(u => u.UserName == username);
+            var normalizedLogin = username.Trim();
+            var user = await _db.Users.FirstOrDefaultAsync(u =>
+                u.UserName == normalizedLogin || u.Email == normalizedLogin);
 
             if (user == null || !user.IsActive || !IsApprovedForLogin(user) || !VerifyPassword(password, user.PasswordHash))
                 return null;
@@ -54,7 +56,7 @@ namespace ATOZA.Infrastructure.Services
             var role = Enum.TryParse<UserRole>(dto.Role, out var parsedRole)
                 ? parsedRole : UserRole.Student;
             if (role == UserRole.Admin)
-                return (false, "Khong the dang ky tai khoan Admin.");
+                return (false, "Không thể đăng ký tài khoản Admin.");
 
             var approvalStatus = role == UserRole.Teacher
                 ? ApprovalStatus.Pending
@@ -85,7 +87,7 @@ namespace ATOZA.Infrastructure.Services
             if (string.IsNullOrWhiteSpace(normalizedGoogleEmail) ||
                 !string.Equals(dto.Email.Trim(), normalizedGoogleEmail, StringComparison.OrdinalIgnoreCase))
             {
-                return (false, "Email Google khong hop le.", null);
+                return (false, "Email Google không hợp lệ.", null);
             }
 
             if (await _db.Users.AnyAsync(u => u.Email == normalizedGoogleEmail))
@@ -93,7 +95,7 @@ namespace ATOZA.Infrastructure.Services
 
             var userName = dto.UserName.Trim();
             if (string.IsNullOrWhiteSpace(userName))
-                return (false, "Vui long nhap ten dang nhap.", null);
+                return (false, "Vui lòng nhập tên đăng nhập.", null);
 
             if (await _db.Users.AnyAsync(u => u.UserName == userName))
                 return (false, "Tên đăng nhập đã tồn tại", null);
@@ -101,7 +103,7 @@ namespace ATOZA.Infrastructure.Services
             var role = Enum.TryParse<UserRole>(dto.Role, out var parsedRole)
                 ? parsedRole : UserRole.Student;
             if (role == UserRole.Admin)
-                return (false, "Khong the dang ky tai khoan Admin.", null);
+                return (false, "Không thể đăng ký tài khoản Admin.", null);
 
             var approvalStatus = role == UserRole.Teacher
                 ? ApprovalStatus.Pending
@@ -140,6 +142,70 @@ namespace ATOZA.Infrastructure.Services
             return _db.Users.AnyAsync(u => u.Email == email || u.UserName == username);
         }
 
+        public async Task<PasswordResetRequestResultDto> RequestPasswordResetAsync(string email)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+                return new PasswordResetRequestResultDto();
+
+            var normalizedEmail = email.Trim();
+            var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == normalizedEmail);
+            if (user == null || !user.IsActive || !IsApprovedForLogin(user))
+                return new PasswordResetRequestResultDto { EmailExists = false };
+
+            var now = DateTime.UtcNow;
+            var existingTokens = await _db.PasswordResetTokens
+                .Where(t => t.UserId == user.Id && t.UsedAtUtc == null)
+                .ToListAsync();
+
+            foreach (var existingToken in existingTokens)
+                existingToken.UsedAtUtc = now;
+
+            var token = CreateResetToken();
+            _db.PasswordResetTokens.Add(new PasswordResetToken
+            {
+                UserId = user.Id,
+                TokenHash = HashResetToken(token),
+                ExpiresAtUtc = now.AddMinutes(30),
+                CreatedAt = now
+            });
+
+            await _db.SaveChangesAsync();
+
+            return new PasswordResetRequestResultDto
+            {
+                EmailExists = true,
+                ResetToken = token
+            };
+        }
+
+        public async Task<(bool Success, string? Error)> ResetPasswordAsync(ResetPasswordDto dto)
+        {
+            var passwordError = ValidatePassword(dto.Password, dto.ConfirmPassword);
+            if (passwordError != null)
+                return (false, passwordError);
+
+            if (string.IsNullOrWhiteSpace(dto.Token))
+                return (false, "Liên kết đặt lại mật khẩu không hợp lệ.");
+
+            var tokenHash = HashResetToken(dto.Token.Trim());
+            var now = DateTime.UtcNow;
+            var resetToken = await _db.PasswordResetTokens
+                .Include(t => t.User)
+                .FirstOrDefaultAsync(t => t.TokenHash == tokenHash && t.UsedAtUtc == null);
+
+            if (resetToken == null || resetToken.ExpiresAtUtc <= now)
+                return (false, "Liên kết đặt lại mật khẩu đã hết hạn hoặc không hợp lệ.");
+
+            if (!resetToken.User.IsActive || !IsApprovedForLogin(resetToken.User))
+                return (false, "Tài khoản chưa được kích hoạt hoặc chưa được duyệt.");
+
+            resetToken.User.PasswordHash = HashPassword(dto.Password);
+            resetToken.UsedAtUtc = now;
+
+            await _db.SaveChangesAsync();
+            return (true, null);
+        }
+
         private static string HashPassword(string password)
         {
             const int iterationCount = 100_000;
@@ -160,16 +226,28 @@ namespace ATOZA.Infrastructure.Services
         private static string CreateExternalPasswordHash(string provider) =>
             $"EXTERNAL:{provider}:{Guid.NewGuid():N}";
 
+        private static string CreateResetToken()
+        {
+            var bytes = RandomNumberGenerator.GetBytes(32);
+            return Convert.ToBase64String(bytes)
+                .TrimEnd('=')
+                .Replace('+', '-')
+                .Replace('/', '_');
+        }
+
+        private static string HashResetToken(string token) =>
+            Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(token)));
+
         private static string? ValidatePassword(string password, string confirmPassword)
         {
             if (string.IsNullOrWhiteSpace(password))
-                return "Vui long nhap mat khau.";
+                return "Vui lòng nhập mật khẩu.";
 
             if (password.Length < 6)
-                return "Mat khau phai co it nhat 6 ky tu.";
+                return "Mật khẩu phải có ít nhất 6 ký tự.";
 
             if (!string.Equals(password, confirmPassword, StringComparison.Ordinal))
-                return "Mat khau xac nhan khong khop.";
+                return "Mật khẩu xác nhận không khớp.";
 
             return null;
         }

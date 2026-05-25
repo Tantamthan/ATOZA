@@ -10,5 +10,7 @@ namespace ATOZA.Application.Abstractions.Services
         Task<(bool Success, string? Error, UserProfileDto? Profile)> RegisterWithGoogleAsync(RegisterDto dto, string googleEmail);
         Task<bool> IsEmailRegisteredAsync(string email);
         Task<bool> IsEmailOrUsernameTakenAsync(string email, string username);
+        Task<PasswordResetRequestResultDto> RequestPasswordResetAsync(string email);
+        Task<(bool Success, string? Error)> ResetPasswordAsync(ResetPasswordDto dto);
     }
 }
