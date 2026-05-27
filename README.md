@@ -1,4 +1,11 @@
 # ATOZA - Hệ thống quản lý thi trực tuyến
+## 👥 Thành viên nhóm
+
+| STT | Họ và tên | MSSV |
+|---:|---|---|
+| 1 | Phạm Văn Tùng | 2324801030079 |
+| 2 | Hoàng Ngọc Nhật Tân | 2324802010346 |
+| 3 | Nguyễn Phan Quốc Hưng | 2324802010046|
 
 > Nền tảng thi trắc nghiệm trực tuyến cho Admin, giáo viên và học sinh, xây dựng bằng ASP.NET Core MVC theo hướng Clean Architecture.
 
