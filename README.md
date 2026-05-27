@@ -1,120 +1,228 @@
-# ATOZA – Hệ Thống Quản Lý Thi Trực Tuyến
+# ATOZA - Hệ thống quản lý thi trực tuyến
 
-> Nền tảng thi trắc nghiệm trực tuyến dành cho Giáo viên, Học sinh và Quản trị viên, xây dựng trên **ASP.NET Core MVC** theo chuẩn **Clean Architecture**.
-
----
+> Nền tảng thi trắc nghiệm trực tuyến cho Admin, giáo viên và học sinh, xây dựng bằng ASP.NET Core MVC theo hướng Clean Architecture.
 
 ## Mục Lục
 
-1. [Giới thiệu](#giới-thiệu)
+1. [Tổng quan](#tổng-quan)
 2. [Tính năng chính](#tính-năng-chính)
 3. [Công nghệ sử dụng](#công-nghệ-sử-dụng)
 4. [Cấu trúc solution](#cấu-trúc-solution)
-5. [Hướng dẫn cài đặt](#hướng-dẫn-cài-đặt)
+5. [Kiến trúc và luồng phụ thuộc](#kiến-trúc-và-luồng-phụ-thuộc)
 6. [Cấu hình](#cấu-hình)
-7. [Tài khoản mặc định](#tài-khoản-mặc-định)
-8. [Tiến trình phát triển](#tiến-trình-phát-triển)
+7. [Cài đặt và chạy ứng dụng](#cài-đặt-và-chạy-ứng-dụng)
+8. [Database và migration](#database-và-migration)
+9. [Tài khoản mặc định](#tài-khoản-mặc-định)
+10. [Kiểm thử](#kiểm-thử)
+11. [Ghi chú phát triển](#ghi-chú-phát-triển)
 
----
+## Tổng quan
 
-## Giới thiệu
+**ATOZA** là ứng dụng web quản lý thi trắc nghiệm online. Hệ thống chia người dùng theo 3 vai trò:
 
-**ATOZA** là ứng dụng web cho phép:
+- **Admin**: quản trị người dùng, duyệt giáo viên, quản lý đề thi, lớp học và thống kê tổng quan.
+- **Teacher**: tạo lớp, tạo/import/chỉnh sửa đề thi, giao đề cho lớp, quản lý chế độ công khai/riêng tư, xuất file và xem báo cáo kết quả.
+- **Student**: tham gia lớp bằng mã lớp, xem bài được giao, bắt đầu attempt, làm bài, nộp bài và xem lại kết quả.
 
-- **Quản trị viên (Admin)** quản lý tập trung: dashboard thống kê, quản lý tài khoản (khóa/mở khóa), giám sát đề thi (duyệt/gỡ/xóa), xem tổng quan lớp học.
-- **Giáo viên** tạo và quản lý lớp học, soạn đề thi (thủ công hoặc import từ file `.docx`/`.pdf`), chỉnh sửa đề thi, giao bài, xuất đề thi ra file Word, quản lý quyền truy cập đề (công khai / riêng tư) và theo dõi kết quả.
-- **Học sinh** tham gia lớp học bằng mã `JoinCode`, làm bài thi trực tuyến (có kiểm tra thời hạn), xem lại kết quả và lịch sử nộp bài.
-
----
+Solution hiện có gồm 5 project: Domain, Application, Infrastructure, Web MVC và Tests.
 
 ## Tính năng chính
 
-### Dành cho Quản trị viên (Admin)
+### Xác thực và tài khoản
+
 | Tính năng | Mô tả |
 |---|---|
-| Dashboard thống kê | Tổng quan: số Teacher, Student, đề thi, lớp học, bài nộp, user active/inactive |
-| Quản lý tài khoản | Xem danh sách User, lọc theo role, khóa/mở khóa tài khoản (`IsActive`) |
-| Quản lý đề thi | Xem tất cả đề thi, duyệt/gỡ đề công khai, xóa đề vi phạm (cascade xóa câu hỏi, bài nộp, bài giao) |
-| Quản lý lớp học | Xem tất cả lớp, số học sinh, số bài giao, giáo viên phụ trách |
+| Đăng ký / đăng nhập | Đăng ký tài khoản Student hoặc Teacher, đăng nhập bằng username/password |
+| Google login | Hỗ trợ đăng nhập/đăng ký qua Google nếu cấu hình `Authentication:Google` |
+| Duyệt giáo viên | Teacher mới đăng ký sẽ ở trạng thái `Pending`, chưa active đến khi Admin phê duyệt |
+| Quên mật khẩu | Tạo token reset mật khẩu và gửi email qua SMTP |
+| Bảo vệ forgot-password | Rate limit 5 yêu cầu / 15 phút theo địa chỉ IP |
+| Password hashing | PBKDF2-SHA256 100,000 iterations, có tự động nâng cấp hash MD5 cũ khi đăng nhập thành công |
+| Cookie authentication | Cookie 30 phút, sliding expiration, có remember-me 30 ngày trong luồng đăng nhập |
 
-### Dành cho Giáo viên
+### Admin
+
 | Tính năng | Mô tả |
 |---|---|
-| Quản lý lớp học | Tạo lớp, xem danh sách lớp, xuất danh sách học sinh ra CSV (UTF-8 BOM) |
-| Soạn đề thi | Tạo đề thi thủ công hoặc import từ file Word/PDF |
-| Chỉnh sửa đề thi | Sửa metadata và câu hỏi của đề thi đã tạo |
-| Xuất đề thi | Export đề thi ra file `.docx` (đáp án đúng in đỏ + tóm tắt đáp án cuối trang) |
-| Giao bài | Gán đề thi vào lớp với thời hạn `AvailableFrom` / `DueDate` |
-| Quản lý truy cập đề | Chuyển đề thi giữa chế độ **công khai** (public) và **riêng tư** (private) |
-| Báo cáo kết quả | Xem điểm và trạng thái nộp bài của từng học sinh theo lớp/đề |
+| Dashboard | Thống kê tổng số Teacher, Student, đề thi, lớp học, bài nộp, user active/inactive |
+| Quản lý tài khoản | Xem/lọc theo role, khóa/mở khóa user bằng `IsActive` |
+| Duyệt giáo viên | Chuyển `ApprovalStatus` của Teacher sang `Approved` hoặc `Rejected` |
+| Quản lý đề thi | Xem danh sách đề, bật/tắt công khai, xóa đề và dữ liệu liên quan |
+| Quản lý lớp học | Xem danh sách lớp, giáo viên phụ trách, số học sinh và số bài giao |
 
-### Dành cho Học sinh
+### Teacher
+
 | Tính năng | Mô tả |
 |---|---|
-| Tham gia lớp | Nhập mã `JoinCode` 6 ký tự để vào lớp |
-| Làm bài thi | Thi trắc nghiệm 4 đáp án (A/B/C/D) – kiểm tra thời hạn `AvailableFrom`/`DueDate` |
-| Lịch sử nộp bài | Xem điểm và chi tiết từng bài đã nộp |
-| Xem lại đáp án | Đối chiếu đáp án đúng/sai sau khi thi |
+| Quản lý lớp | Tạo lớp, xem danh sách lớp, xem chi tiết lớp |
+| Mã tham gia lớp | Mỗi lớp có `JoinCode` duy nhất để học sinh tham gia |
+| Xuất danh sách học sinh | Export danh sách học sinh của lớp ra CSV UTF-8 BOM |
+| Tạo đề thi | Tạo đề bằng form web hoặc import từ file `.docx` / `.pdf` |
+| Validate file import | Giới hạn 10 MB, chỉ nhận `.docx` và `.pdf`, kiểm tra MIME type |
+| Chỉnh sửa đề thi | Cập nhật metadata và câu hỏi; nếu đề đã có assignment/submission thì tạo version mới và archive version cũ |
+| Chế độ đề thi | Hỗ trợ `Assessment` và `Practice` |
+| Công khai/riêng tư | Đề public có thể được giao bởi giáo viên khác; đề private chỉ giáo viên tạo đề sử dụng |
+| Giao bài | Gán đề thi vào lớp với `AvailableFrom` và `DueDate` theo UTC |
+| Báo cáo kết quả | Xem trạng thái nộp bài và điểm của từng học sinh theo lớp/đề |
+| Xuất Word | Export đề thi `.docx`, có đáp án đúng và bảng đáp án cuối file |
 
----
+### Student
+
+| Tính năng | Mô tả |
+|---|---|
+| Tham gia lớp | Nhập `JoinCode` để vào lớp |
+| Xem bài được giao | Xem danh sách assignment theo lớp và trang My Assignments |
+| Bắt đầu attempt | Tạo `ExamAttempt`, refresh không tạo attempt mới nếu attempt đang chạy |
+| Làm bài | Chỉ truy cập khi là thành viên lớp, đề đã mở, chưa quá hạn và chưa nộp |
+| Nộp bài | Chấm điểm tự động, lưu submission và submission detail |
+| Hết giờ | Attempt quá hạn bị đánh dấu `Expired` và không tạo submission |
+| Practice mode | Kiểm tra đáp án từng câu và trả về feedback đúng/sai |
+| Xem lại bài | Xem điểm, đáp án đã chọn và kết quả từng câu |
 
 ## Công nghệ sử dụng
 
-| Thành phần | Phiên bản / Công nghệ |
+| Thành phần | Công nghệ / phiên bản |
 |---|---|
-| Framework | ASP.NET Core MVC (.NET 10.0) |
-| Language | C# |
+| Runtime | .NET 10.0 |
+| Web framework | ASP.NET Core MVC, Razor Views |
+| Language | C# với nullable reference types |
 | ORM | Entity Framework Core 9.0.14 |
-| Database | SQL Server (LocalDB `(localdb)\MSSQLLocalDB`) |
-| Frontend | Razor Views (`.cshtml`), HTML5, CSS3, JavaScript |
-| File Parsing | DocumentFormat.OpenXml 3.5.1 (Word), PdfPig 0.1.14 (PDF) |
-| Password Hashing | **PBKDF2-SHA256** (100,000 iterations) – tự động nâng cấp từ MD5 legacy |
-| Authentication | **Cookie Authentication** (ASP.NET Core) + Claims-based identity |
-| Authorization | `[Authorize]` attribute với role-based (`Admin` / `Teacher` / `Student`) |
-
----
+| Database | SQL Server / SQL Server LocalDB |
+| Authentication | ASP.NET Core Cookie Authentication, Google Authentication 9.0.16 |
+| Authorization | Role-based authorization bằng `[Authorize(Roles = "...")]` |
+| UI | Razor, Bootstrap, jQuery, jQuery Validation, CSS/JavaScript riêng |
+| Word import/export | DocumentFormat.OpenXml 3.5.1 |
+| PDF import | PdfPig 0.1.14 |
+| Test | xUnit, EF Core InMemory, coverlet.collector |
 
 ## Cấu trúc solution
 
-```
+```text
 Atoza.slnx
-├── ATOZA.Domain/           # Tầng Domain – Entities, Enums, Common, Exceptions
-├── ATOZA.Application/      # Tầng Application – Abstractions, DTOs, Features
-├── ATOZA.Infrastructure/   # Tầng Infrastructure – DbContext, Services, Migrations
-└── Atoza/                  # Tầng Presentation – Controllers, Views, wwwroot
+|-- ATOZA.Domain/
+|   |-- Common/
+|   |   `-- BaseEntity.cs
+|   |-- Entities/
+|   |   |-- User.cs
+|   |   |-- Class.cs
+|   |   |-- ClassStudent.cs
+|   |   |-- ClassAssignment.cs
+|   |   |-- Exam.cs
+|   |   |-- Question.cs
+|   |   |-- ExamAttempt.cs
+|   |   |-- Submission.cs
+|   |   `-- SubmissionDetail.cs
+|   |-- Enums/
+|   |   |-- UserRole.cs
+|   |   |-- ApprovalStatus.cs
+|   |   |-- ExamMode.cs
+|   |   `-- AttemptStatus.cs
+|   `-- Exceptions/
+|       `-- DomainExceptions.cs
+|-- ATOZA.Application/
+|   |-- Abstractions/
+|   |   |-- Persistence/
+|   |   |   `-- IApplicationDbContext.cs
+|   |   `-- Services/
+|   |       |-- IAdminService.cs
+|   |       |-- IAuthService.cs
+|   |       |-- IClassService.cs
+|   |       |-- IEmailService.cs
+|   |       |-- IExamAttemptService.cs
+|   |       |-- IExamService.cs
+|   |       |-- IFileParserService.cs
+|   |       `-- ISubmissionService.cs
+|   `-- DTOs/
+|       |-- AdminDtos.cs
+|       |-- AuthDtos.cs
+|       |-- ClassDtos.cs
+|       |-- ExamDtos.cs
+|       `-- SubmissionDtos.cs
+|-- ATOZA.Infrastructure/
+|   |-- Persistence/
+|   |   `-- ATOZADbContext.cs
+|   |-- Services/
+|   |   |-- AdminService.cs
+|   |   |-- AuthService.cs
+|   |   |-- ClassService.cs
+|   |   |-- ExamAttemptService.cs
+|   |   |-- ExamService.cs
+|   |   |-- FileParserService.cs
+|   |   |-- SmtpEmailService.cs
+|   |   `-- SubmissionService.cs
+|   |-- Migrations/
+|   `-- DependencyInjection.cs
+|-- Atoza/
+|   |-- Controllers/
+|   |   |-- AccountController.cs
+|   |   |-- AdminController.cs
+|   |   |-- ExamController.cs
+|   |   |-- HomeController.cs
+|   |   |-- StudentController.cs
+|   |   `-- TeacherController.cs
+|   |-- Views/
+|   |   |-- account/
+|   |   |-- admin/
+|   |   |-- exam/
+|   |   |-- Home/
+|   |   |-- Shared/
+|   |   |-- student/
+|   |   `-- teacher/
+|   |-- wwwroot/
+|   |   |-- css/
+|   |   |-- js/
+|   |   |-- lib/
+|   |   `-- data/
+|   |-- Program.cs
+|   |-- appsettings.json
+|   |-- appsettings.Development.json
+|   `-- Properties/launchSettings.json
+`-- ATOZA.Tests/
+    |-- AuthServiceTests.cs
+    |-- ExamServiceTests.cs
+    `-- HighPriorityWorkflowTests.cs
 ```
 
-### Chi tiết từng tầng
+Thư mục `.vs/`, `bin/`, `obj/`, `.claude/`, `.dotnet-home/`, `.codex-run/` và `.codex-build/` là thư mục local/tooling, không phải mã nguồn chính.
 
-**ATOZA.Domain** – Entities: `User`, `Class`, `ClassStudent`, `ClassAssignment`, `Exam`, `Question`, `Submission`, `SubmissionDetail` | Enums: `UserRole` (Student/Teacher/Admin), `ExamMode` (Assessment/Practice) | Exceptions: `DomainExceptions` | Common: `BaseEntity`
+## Kiến trúc và luồng phụ thuộc
 
-**ATOZA.Application** – Interfaces: `IAuthService`, `IClassService`, `IExamService`, `ISubmissionService`, `IFileParserService`, `IAdminService` | DTOs: `AuthDtos`, `ClassDtos`, `ExamDtos`, `SubmissionDtos`, `AdminDtos`
+Solution đang đi theo hướng Clean Architecture:
 
-**ATOZA.Infrastructure** – Services: `AuthService`, `ClassService`, `ExamService`, `SubmissionService`, `FileParserService`, `AdminService` | Persistence: `ATOZADbContext` | Migrations: `InitialCreate`, `AddExamVisibility`, `AddAdminSupport`
-
-**Atoza (Presentation)** – Controllers: `HomeController`, `AccountController`, `TeacherController`, `StudentController`, `ExamController`, `AdminController` | Views: `account/`, `teacher/`, `student/`, `exam/`, `admin/` | CSS: `site.css`, `exam.css`, `CreateExam.css`, `admin.css`
-
-Xem chi tiết kiến trúc tại [ARCHITECTURE.md](./ARCHITECTURE.md).
-
----
-
-## Hướng dẫn cài đặt
-
-### Yêu cầu hệ thống
-- [.NET 10 SDK](https://dotnet.microsoft.com/download)
-- SQL Server LocalDB (cài cùng Visual Studio) hoặc SQL Server bất kỳ
-
-### Các bước thực hiện
-
-**1. Clone repository**
-```bash
-git clone <repository-url>
-cd Atoza
+```text
+Atoza (Web MVC)
+    -> ATOZA.Application
+    -> ATOZA.Infrastructure
+        -> ATOZA.Application
+        -> ATOZA.Domain
+ATOZA.Application
+    -> ATOZA.Domain
+ATOZA.Domain
+    -> không phụ thuộc project nội bộ nào
+ATOZA.Tests
+    -> Domain, Application, Infrastructure
 ```
 
-**2. Cấu hình connection string**
+- **Domain** chứa entity, enum, base entity và exception nghiệp vụ.
+- **Application** chứa DTO và interface cho persistence/service.
+- **Infrastructure** hiện thực EF Core `ATOZADbContext`, service nghiệp vụ, email SMTP, import/export file và migration.
+- **Atoza** là presentation layer: routing, controller, view, static assets, cookie/session/rate-limit/error handling.
+- **Tests** kiểm thử các luồng ưu tiên bằng xUnit và EF Core InMemory.
 
-Mở file `Atoza/appsettings.json`, chỉnh `DefaultConnection` nếu cần:
+Đăng ký DI nằm trong `ATOZA.Infrastructure/DependencyInjection.cs`, được gọi từ `Atoza/Program.cs` bằng `builder.Services.AddInfrastructure(builder.Configuration)`.
+
+## Cấu hình
+
+Ứng dụng đọc cấu hình từ:
+
+- `Atoza/appsettings.json`
+- `Atoza/appsettings.Development.json`
+- `Atoza/appsettings.Local.json` nếu file này tồn tại
+
+`appsettings.Local.json` phù hợp để đặt secret trên máy local. Nếu dùng file này cho secret thật, cần đảm bảo không commit lên repository.
+
+### Connection string
+
 ```json
 {
   "ConnectionStrings": {
@@ -123,89 +231,166 @@ Mở file `Atoza/appsettings.json`, chỉnh `DefaultConnection` nếu cần:
 }
 ```
 
-**3. Áp dụng Database Migration**
+### Authentication
+
+| Key | Bắt buộc | Mô tả |
+|---|---:|---|
+| `Authentication:Google:ClientId` | Không | Bật Google login khi có cả ClientId và ClientSecret |
+| `Authentication:Google:ClientSecret` | Không | Secret của Google OAuth |
+| `Authentication:PasswordReset:Secret` | Có trong non-Development | Secret ký token reset mật khẩu |
+
+Nếu chạy môi trường không phải Development, hệ thống sẽ dừng khởi động nếu thiếu `Authentication:PasswordReset:Secret`.
+
+### Email SMTP
+
+| Key | Mô tả |
+|---|---|
+| `Email:SmtpHost` | SMTP host, mặc định `smtp.gmail.com` |
+| `Email:SmtpPort` | SMTP port, mặc định `587` |
+| `Email:EnableSsl` | Bật/tắt SSL |
+| `Email:UserName` | Tài khoản SMTP |
+| `Email:Password` | Mật khẩu/app password SMTP |
+| `Email:FromEmail` | Email người gửi |
+| `Email:FromName` | Tên người gửi, mặc định `Atoza` |
+
+### Cấu hình runtime trong `Program.cs`
+
+| Thành phần | Giá trị hiện tại |
+|---|---|
+| Cookie login path | `/Account/Login` |
+| Cookie expire | 30 phút, sliding expiration |
+| Remember-me | 30 ngày trong logic đăng nhập |
+| External cookie | `Atoza.External`, expire 5 phút |
+| Session idle timeout | 30 phút |
+| Antiforgery header | `RequestVerificationToken` |
+| Forgot password rate limit | 5 request / 15 phút / IP |
+| Global exception handler | Map domain exception sang JSON status code, redirect `/Home/Error` cho lỗi 500 non-JSON |
+
+## Cài đặt và chạy ứng dụng
+
+### Yêu cầu
+
+- .NET 10 SDK
+- SQL Server LocalDB hoặc SQL Server
+- EF Core CLI tool nếu cần chạy migration bằng lệnh `dotnet ef`
+
+Kiểm tra SDK:
+
 ```bash
-cd ATOZA.Infrastructure
-dotnet ef database update --startup-project ../Atoza
+dotnet --version
 ```
 
-> **Lưu ý:** Migration `AddAdminSupport` sẽ tự động tạo tài khoản Admin mặc định (xem mục [Tài khoản mặc định](#tài-khoản-mặc-định)).
+Cài EF tool nếu chưa có:
 
-**4. Chạy ứng dụng**
 ```bash
-cd Atoza
-dotnet run
+dotnet tool install --global dotnet-ef
 ```
 
-Ứng dụng sẽ chạy tại `https://localhost:...` (xem terminal để biết port chính xác).
+### Khởi động local
 
----
+```bash
+dotnet restore Atoza.slnx
+dotnet build Atoza.slnx
+dotnet ef database update --project ATOZA.Infrastructure --startup-project Atoza
+dotnet run --project Atoza --launch-profile https
+```
 
-## Cấu hình
+Theo `Atoza/Properties/launchSettings.json`, profile mặc định:
 
-| Key | Vị trí | Mô tả |
-|---|---|---|
-| `ConnectionStrings:DefaultConnection` | `appsettings.json` | Chuỗi kết nối SQL Server |
-| `Cookie Authentication ExpireTimeSpan` | `Program.cs` | 30 phút (sliding), 30 ngày nếu RememberMe |
-| `Session:IdleTimeout` | `Program.cs` | Thời gian hết phiên: **30 phút** |
-| `AntiForgery Header` | `Program.cs` | Header name: `RequestVerificationToken` |
+- HTTPS: `https://localhost:7032`
+- HTTP: `http://localhost:5009`
 
----
+Có thể chạy HTTP:
+
+```bash
+dotnet run --project Atoza --launch-profile http
+```
+
+## Database và migration
+
+DbContext chính: `ATOZA.Infrastructure/Persistence/ATOZADbContext.cs`.
+
+DbSet hiện có:
+
+- `Users`
+- `Exams`
+- `Questions`
+- `Classes`
+- `ClassStudents`
+- `ClassAssignments`
+- `Submissions`
+- `SubmissionDetails`
+- `ExamAttempts`
+
+Ràng buộc quan trọng:
+
+- `Users.Email` và `Users.UserName` unique.
+- `Classes.JoinCode` unique.
+- `ClassStudents` dùng composite key `{ ClassId, StudentId }`.
+- `Submissions` unique theo `{ ExamId, StudentId }`.
+- `ClassAssignments` unique theo `{ ClassId, ExamId }` để tránh giao trùng đề cho cùng một lớp.
+- Nhiều quan hệ dùng `DeleteBehavior.Restrict`; các service/Admin xử lý xóa liên quan khi cần.
+
+Migration hiện có:
+
+| Migration | Mục đích |
+|---|---|
+| `20260406031100_InitialCreate` | Tạo schema ban đầu |
+| `20260426031226_AddExamVisibility` | Thêm trạng thái public/private cho đề |
+| `20260427144552_AddAdminSupport` | Bổ sung hỗ trợ Admin |
+| `20260515005759_AddExamAttemptsVersioningAndTeacherApproval` | Thêm attempt, versioning đề thi và duyệt Teacher |
+| `20260526090356_AddUniqueClassExamAssignment` | Thêm unique index cho assignment theo class/exam |
+
+Tạo migration mới:
+
+```bash
+dotnet ef migrations add <TenMigration> --project ATOZA.Infrastructure --startup-project Atoza
+```
+
+Cập nhật database:
+
+```bash
+dotnet ef database update --project ATOZA.Infrastructure --startup-project Atoza
+```
 
 ## Tài khoản mặc định
 
-Hệ thống có sẵn tài khoản Admin được seed từ migration `AddAdminSupport`:
+Hệ thống seed tài khoản Admin trong `ATOZADbContext`:
 
 | Trường | Giá trị |
 |---|---|
 | UserName | `admin` |
 | Email | `admin@atoza.vn` |
 | Password | `admin123` |
-| Role | `Admin (2)` |
+| Role | `Admin` |
 | IsActive | `true` |
+| ApprovalStatus | `Approved` |
 
-> ⚠️ **Bảo mật:** Mật khẩu mặc định cần được đổi ngay sau khi deploy.
+Cần đổi mật khẩu Admin mặc định khi triển khai thật.
 
-Ngoài tài khoản Admin, cần đăng ký tài khoản Teacher/Student thông qua `/Account/Register` (role Admin bị chặn đăng ký).
+Teacher và Student được đăng ký qua `/Account/Register`. Role Admin không được mở đăng ký công khai.
 
----
+## Kiểm thử
 
-## Tiến trình phát triển
+Project test: `ATOZA.Tests`.
 
-### ✅ Đã hoàn thành
+Chạy toàn bộ test:
 
-- **Clean Architecture**: 4 tầng tách biệt (Domain → Application → Infrastructure → Presentation)
-- **Authentication & Authorization**: Cookie Authentication + Claims-based identity + `[Authorize(Roles)]`
-- **Password Hashing**: PBKDF2-SHA256 (100K iterations) với auto-migration từ MD5 legacy
-- **Module Giáo viên**: Quản lý lớp, soạn/sửa đề, giao bài, báo cáo kết quả, xuất CSV/Word
-- **Module Học sinh**: Tham gia lớp, làm bài thi (kiểm tra thời hạn), lịch sử nộp bài, xem lại đáp án
-- **Import đề thi**: Parse từ file `.docx` (OpenXml, đáp án đỏ → `*`) và `.pdf` (PdfPig)
-- **Xuất đề thi Word**: File `.docx` đáp án đúng in đỏ + tóm tắt đáp án cuối trang
-- **Exam Visibility**: Đề thi công khai / riêng tư (`IsPublic`)
-- **Exam Editing**: Chỉnh sửa đề thi đã tạo (EditExam / UpdateExamApi)
-- **Module Admin**: ✅ **Hoàn thành**
-  - Dashboard thống kê tổng quan
-  - Quản lý tài khoản (xem, lọc theo role, khóa/mở khóa `IsActive`)
-  - Quản lý đề thi (xem, duyệt/gỡ công khai, xóa cascade)
-  - Quản lý lớp học (xem tổng quan)
-  - Seed tài khoản Admin mặc định qua Migration
-  - Chặn đăng ký role Admin (cả Controller và Service)
-  - Kiểm tra `IsActive` khi đăng nhập
-  - Redirect theo role (Teacher / Student / Admin)
+```bash
+dotnet test Atoza.slnx
+```
 
-### ⚠️ Cần cải thiện
+Phạm vi test hiện có:
 
-- **ExamMode Practice**: Enum `Practice = 1` đã định nghĩa nhưng logic "xem đáp án sau mỗi câu" chưa triển khai
-- **File Upload Validation**: `ProcessExamFile` chưa ràng buộc size/type file ở tầng Controller
-- **Domain Exceptions**: Các exception đã định nghĩa nhưng chưa được sử dụng đồng bộ (hiện dùng return value)
-- **Timezone**: Cần chuẩn hóa về UTC đồng bộ toàn hệ thống
+- `AuthServiceTests`: login bằng MD5 legacy và nâng cấp PBKDF2, kiểm tra email/username tồn tại, Google login/register, reset password.
+- `ExamServiceTests`: exception khi sửa đề không tồn tại hoặc không thuộc giáo viên.
+- `HighPriorityWorkflowTests`: Teacher pending cho đến khi Admin duyệt, versioning khi sửa đề đã giao, attempt reuse khi refresh, attempt expired, view không render raw HTML cho nội dung câu hỏi.
 
-### 📋 Việc cần làm tiếp theo
+## Ghi chú phát triển
 
-- [ ] Triển khai `ExamMode.Practice` (xem đáp án sau từng câu)
-- [ ] Thêm validation file size và MIME type trong `ProcessExamFile`
-- [ ] Sử dụng Domain Exceptions thống nhất thay vì return tuple
-- [ ] Chuẩn hóa timezone về UTC toàn bộ hệ thống
-- [ ] Viết unit test cho các Service
-- [ ] Cân nhắc bổ sung global exception handler middleware
-- [ ] (Tùy chọn) Thêm seed data tạo tài khoản Teacher/Student mẫu để tiện demo/test
+- `ExamMode.Assessment`: thi chính thức, không hiện đáp án ngay.
+- `ExamMode.Practice`: cho phép gọi `/Exam/CheckPracticeAnswer` để xem feedback từng câu.
+- Khi sửa đề đã có assignment/submission, service tạo đề version mới và archive đề cũ để giữ lịch sử assignment.
+- Thời gian assignment và attempt được xử lý theo UTC trong service/controller.
+- Static assets nằm trong `Atoza/wwwroot`; các thư viện client vendor nằm trong `wwwroot/lib`.
+- Một số chuỗi thông báo trong code hiện đang viết không dấu để tránh lỗi encoding trong runtime/terminal.
