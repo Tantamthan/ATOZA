@@ -4,6 +4,7 @@ using ATOZA.Application.DTOs;
 using ATOZA.Domain.Entities;
 using ATOZA.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -12,8 +13,22 @@ namespace ATOZA.Infrastructure.Services
     public class AuthService : IAuthService
     {
         private readonly IApplicationDbContext _db;
+        private readonly string _passwordResetSecret;
 
-        public AuthService(IApplicationDbContext db) => _db = db;
+        public AuthService(IApplicationDbContext db, IConfiguration? configuration = null)
+        {
+            _db = db;
+            if (configuration != null)
+            {
+                _passwordResetSecret = configuration["Authentication:PasswordReset:Secret"]
+                    ?? throw new InvalidOperationException(
+                        "Missing required configuration: Authentication:PasswordReset:Secret.");
+            }
+            else
+            {
+                _passwordResetSecret = "ATOZA_PASSWORD_RESET_DEV_SECRET";
+            }
+        }
 
         public async Task<UserProfileDto?> LoginAsync(string username, string password)
         {
@@ -28,18 +43,26 @@ namespace ATOZA.Infrastructure.Services
                 await _db.SaveChangesAsync();
             }
 
-            return new UserProfileDto
-            {
-                Id = user.Id,
-                FullName = user.FullName,
-                Email = user.Email,
-                UserName = user.UserName,
-                Role = user.Role.ToString()
-            };
+            return ToProfile(user);
+        }
+
+        public async Task<UserProfileDto?> LoginWithGoogleAsync(string email)
+        {
+            var normalizedEmail = email.Trim();
+            var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == normalizedEmail);
+
+            if (user == null || !user.IsActive || !IsApprovedForLogin(user))
+                return null;
+
+            return ToProfile(user);
         }
 
         public async Task<(bool Success, string? Error)> RegisterAsync(RegisterDto dto)
         {
+            var passwordError = ValidatePassword(dto.Password, dto.ConfirmPassword);
+            if (passwordError != null)
+                return (false, passwordError);
+
             if (await IsEmailOrUsernameTakenAsync(dto.Email, dto.UserName))
                 return (false, "Email hoặc Tên đăng nhập đã tồn tại");
 
@@ -69,9 +92,171 @@ namespace ATOZA.Infrastructure.Services
             return (true, null);
         }
 
+        public async Task<(bool Success, string? Error, UserProfileDto? Profile)> RegisterWithGoogleAsync(
+            RegisterDto dto,
+            string googleEmail)
+        {
+            var normalizedGoogleEmail = googleEmail.Trim();
+            if (string.IsNullOrWhiteSpace(normalizedGoogleEmail) ||
+                !string.Equals(dto.Email.Trim(), normalizedGoogleEmail, StringComparison.OrdinalIgnoreCase))
+            {
+                return (false, "Email Google khong hop le.", null);
+            }
+
+            if (await _db.Users.AnyAsync(u => u.Email == normalizedGoogleEmail))
+                return (false, "Email đã tồn tại", null);
+
+            var passwordError = ValidatePassword(dto.Password, dto.ConfirmPassword);
+            if (passwordError != null)
+                return (false, passwordError, null);
+
+            var userName = dto.UserName.Trim();
+            if (string.IsNullOrWhiteSpace(userName))
+                return (false, "Vui long nhap ten dang nhap.", null);
+
+            if (await _db.Users.AnyAsync(u => u.UserName == userName))
+                return (false, "Tên đăng nhập đã tồn tại", null);
+
+            var role = Enum.TryParse<UserRole>(dto.Role, out var parsedRole)
+                ? parsedRole : UserRole.Student;
+            if (role == UserRole.Admin)
+                return (false, "Khong the dang ky tai khoan Admin.", null);
+
+            var approvalStatus = role == UserRole.Teacher
+                ? ApprovalStatus.Pending
+                : ApprovalStatus.Approved;
+
+            var user = new User
+            {
+                FullName = dto.FullName.Trim(),
+                Email = normalizedGoogleEmail,
+                UserName = userName,
+                PasswordHash = HashPassword(dto.Password),
+                Role = role,
+                IsActive = approvalStatus == ApprovalStatus.Approved,
+                ApprovalStatus = approvalStatus,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _db.Users.Add(user);
+            await _db.SaveChangesAsync();
+
+            var profile = user.IsActive && IsApprovedForLogin(user)
+                ? ToProfile(user)
+                : null;
+
+            return (true, null, profile);
+        }
+
+        public Task<bool> IsEmailRegisteredAsync(string email)
+        {
+            var normalizedEmail = email.Trim();
+            return _db.Users.AnyAsync(u => u.Email == normalizedEmail);
+        }
+
+        public async Task<PasswordResetTokenDto?> CreatePasswordResetTokenAsync(string email)
+        {
+            var normalizedEmail = email.Trim();
+            var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == normalizedEmail);
+
+            if (user == null || !user.IsActive || !IsApprovedForLogin(user))
+                return null;
+
+            return new PasswordResetTokenDto
+            {
+                Email = user.Email,
+                FullName = user.FullName,
+                Token = CreatePasswordResetToken(user)
+            };
+        }
+
+        public async Task<(bool Success, string? Error, string? Email, string? FullName)> ResetPasswordAsync(ResetPasswordDto dto)
+        {
+            var passwordError = ValidatePassword(dto.Password, dto.ConfirmPassword);
+            if (passwordError != null)
+                return (false, passwordError, null, null);
+
+            const string invalidTokenMessage = "Link dat lai mat khau khong hop le hoac da het han.";
+
+            var normalizedEmail = dto.Email.Trim();
+            var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == normalizedEmail);
+            if (user == null || !user.IsActive || !IsApprovedForLogin(user))
+                return (false, invalidTokenMessage, null, null);
+
+            if (!ValidatePasswordResetToken(user, dto.Token))
+                return (false, invalidTokenMessage, null, null);
+
+            user.PasswordHash = HashPassword(dto.Password);
+            await _db.SaveChangesAsync();
+            return (true, null, user.Email, user.FullName);
+        }
+
         public Task<bool> IsEmailOrUsernameTakenAsync(string email, string username)
         {
             return _db.Users.AnyAsync(u => u.Email == email || u.UserName == username);
+        }
+
+        private string CreatePasswordResetToken(User user)
+        {
+            var expiresUtc = DateTimeOffset.UtcNow.AddMinutes(30).ToUnixTimeSeconds();
+            var nonce = Convert.ToHexString(RandomNumberGenerator.GetBytes(16));
+            var payload = $"{user.Id}|{expiresUtc}|{nonce}";
+            var signature = SignPasswordResetPayload(payload, user.PasswordHash);
+
+            return $"{Base64UrlEncode(Encoding.UTF8.GetBytes(payload))}.{signature}";
+        }
+
+        private bool ValidatePasswordResetToken(User user, string token)
+        {
+            var parts = token.Split('.', 2);
+            if (parts.Length != 2)
+                return false;
+
+            try
+            {
+                var payload = Encoding.UTF8.GetString(Base64UrlDecode(parts[0]));
+                var payloadParts = payload.Split('|');
+                if (payloadParts.Length != 3)
+                    return false;
+
+                if (!int.TryParse(payloadParts[0], out var userId) || userId != user.Id)
+                    return false;
+
+                if (!long.TryParse(payloadParts[1], out var expiresUtc) ||
+                    DateTimeOffset.UtcNow.ToUnixTimeSeconds() > expiresUtc)
+                {
+                    return false;
+                }
+
+                var expectedSignature = SignPasswordResetPayload(payload, user.PasswordHash);
+                return FixedTimeEquals(expectedSignature, parts[1]);
+            }
+            catch (FormatException)
+            {
+                return false;
+            }
+        }
+
+        private string SignPasswordResetPayload(string payload, string passwordHash)
+        {
+            var key = SHA256.HashData(Encoding.UTF8.GetBytes($"{_passwordResetSecret}|{passwordHash}"));
+            using var hmac = new HMACSHA256(key);
+            return Base64UrlEncode(hmac.ComputeHash(Encoding.UTF8.GetBytes(payload)));
+        }
+
+        private static string Base64UrlEncode(byte[] bytes) =>
+            Convert.ToBase64String(bytes)
+                .TrimEnd('=')
+                .Replace('+', '-')
+                .Replace('/', '_');
+
+        private static byte[] Base64UrlDecode(string value)
+        {
+            var padded = value
+                .Replace('-', '+')
+                .Replace('_', '/');
+            padded = padded.PadRight(padded.Length + (4 - padded.Length % 4) % 4, '=');
+            return Convert.FromBase64String(padded);
         }
 
         private static string HashPassword(string password)
@@ -90,6 +275,30 @@ namespace ATOZA.Infrastructure.Services
 
             return $"PBKDF2${iterationCount}${Convert.ToBase64String(salt)}${Convert.ToBase64String(hash)}";
         }
+
+        private static string? ValidatePassword(string password, string confirmPassword)
+        {
+            if (string.IsNullOrWhiteSpace(password))
+                return "Vui long nhap mat khau.";
+
+            if (password.Length < 6)
+                return "Mat khau phai co it nhat 6 ky tu.";
+
+            if (!string.Equals(password, confirmPassword, StringComparison.Ordinal))
+                return "Mat khau xac nhan khong khop.";
+
+            return null;
+        }
+
+        private static UserProfileDto ToProfile(User user) =>
+            new()
+            {
+                Id = user.Id,
+                FullName = user.FullName,
+                Email = user.Email,
+                UserName = user.UserName,
+                Role = user.Role.ToString()
+            };
 
         private static bool VerifyPassword(string password, string storedHash)
         {

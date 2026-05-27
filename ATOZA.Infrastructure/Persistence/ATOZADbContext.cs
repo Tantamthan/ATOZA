@@ -88,6 +88,8 @@ namespace ATOZA.Infrastructure.Persistence
                 e.HasKey(ca => ca.Id);
                 e.HasOne(ca => ca.Class).WithMany(c => c.ClassAssignments).HasForeignKey(ca => ca.ClassId).OnDelete(DeleteBehavior.Restrict);
                 e.HasOne(ca => ca.Exam).WithMany(x => x.ClassAssignments).HasForeignKey(ca => ca.ExamId).OnDelete(DeleteBehavior.Restrict);
+                // Mỗi đề thi chỉ được giao một lần cho mỗi lớp (chống trùng do double-submit)
+                e.HasIndex(ca => new { ca.ClassId, ca.ExamId }).IsUnique();
             });
 
             // Submission

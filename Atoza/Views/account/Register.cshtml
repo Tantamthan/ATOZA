@@ -3,6 +3,7 @@
 @{
     Layout = null;
     ViewBag.Title = "Đăng Ký Tài Khoản";
+    var isExternalLogin = Model?.IsExternalLogin == true;
 }
 
 <!DOCTYPE html>
@@ -178,6 +179,12 @@
             box-shadow: 0 0 0 3px rgba(255,106,0,0.1);
         }
 
+        .field-input[readonly] {
+            background: #f9fafb;
+            color: #6b7280;
+            cursor: not-allowed;
+        }
+
         /* Hidden role input (fallback select) */
         .role-hidden-select { display: none !important; }
 
@@ -219,6 +226,19 @@
             background: #fef2f2;
             border: 1px solid #fecaca;
             color: #dc2626;
+            border-radius: 10px;
+            padding: 0.7rem 1rem;
+            font-size: 0.85rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .auth-info {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            color: #1d4ed8;
             border-radius: 10px;
             padding: 0.7rem 1rem;
             font-size: 0.85rem;
@@ -296,17 +316,26 @@
 
     <div class="auth-box">
 
-        <h1 class="auth-title">Tạo tài khoản mới</h1>
-        <p class="auth-subtitle">Miễn phí, không cần thẻ tín dụng</p>
+        <h1 class="auth-title">@(isExternalLogin ? "Hoàn tất đăng ký" : "Tạo tài khoản mới")</h1>
+        <p class="auth-subtitle">@(isExternalLogin ? "Bổ sung thông tin để dùng tài khoản Google trên Atoza" : "Miễn phí, không cần thẻ tín dụng")</p>
 
         @using (Html.BeginForm("Register", "Account", FormMethod.Post, new { id = "registerForm", autocomplete = "on" }))
         {
             @Html.AntiForgeryToken()
+            @Html.HiddenFor(m => m.IsExternalLogin)
 
             @if (ViewBag.Error != null)
             {
                 <div class="auth-error">
                     <i class="fa-solid fa-circle-exclamation"></i> @ViewBag.Error
+                </div>
+            }
+
+            @if (isExternalLogin)
+            {
+                <div class="auth-info">
+                    <i class="fa-brands fa-google"></i>
+                    Email đã được xác thực bằng Google. Vui lòng chọn vai trò và tên đăng nhập.
                 </div>
             }
 
@@ -321,7 +350,7 @@
             <!-- Step 1: Role -->
             <p class="field-section">Bạn là</p>
             <div class="role-selector" id="rolePicker">
-                <input type="radio" name="__roleUI" id="roleStudent" value="Student" class="role-option" checked>
+                <input type="radio" name="__roleUI" id="roleStudent" value="Student" class="role-option" @(string.Equals(Model?.Role, "Teacher", StringComparison.OrdinalIgnoreCase) ? "" : "checked")>
                 <label for="roleStudent" class="role-label">
                     <div class="role-icon"><i class="fa-solid fa-user-graduate"></i></div>
                     <div>
@@ -330,7 +359,7 @@
                     </div>
                 </label>
 
-                <input type="radio" name="__roleUI" id="roleTeacher" value="Teacher" class="role-option">
+                <input type="radio" name="__roleUI" id="roleTeacher" value="Teacher" class="role-option" @(string.Equals(Model?.Role, "Teacher", StringComparison.OrdinalIgnoreCase) ? "checked" : "")>
                 <label for="roleTeacher" class="role-label">
                     <div class="role-icon"><i class="fa-solid fa-chalkboard-teacher"></i></div>
                     <div>
@@ -352,7 +381,7 @@
 
             <div class="field-wrap">
                 <label class="field-label" for="Email">Email</label>
-                @Html.EditorFor(m => m.Email, new { htmlAttributes = new { @class = "field-input", id = "Email", type = "email", placeholder = "email@example.com", autocomplete = "email" } })
+                <input class="field-input" id="Email" name="Email" type="email" placeholder="email@example.com" autocomplete="email" value="@Model?.Email" @(isExternalLogin ? "readonly" : "") />
                 @Html.ValidationMessageFor(m => m.Email, "", new { @class = "validation-msg" })
             </div>
 
@@ -380,7 +409,7 @@
             </div>
 
             <button type="submit" class="btn-submit">
-                Tạo tài khoản
+                @(isExternalLogin ? "Hoàn tất đăng ký" : "Tạo tài khoản")
             </button>
         }
 

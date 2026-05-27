@@ -38,7 +38,10 @@ namespace ATOZA.Infrastructure.Services
 
         public Task<Class?> GetClassDetailAsync(int classId, int teacherId)
         {
-            return _db.Classes.FirstOrDefaultAsync(c => c.Id == classId && c.TeacherId == teacherId);
+            return _db.Classes
+                .Include(c => c.ClassStudents)
+                    .ThenInclude(cs => cs.Student)
+                .FirstOrDefaultAsync(c => c.Id == classId && c.TeacherId == teacherId);
         }
 
         public async Task<AssignExamResultDto> AssignExamAsync(AssignExamDto dto, int teacherId)
@@ -70,7 +73,16 @@ namespace ATOZA.Infrastructure.Services
                 AssignedAt = DateTime.UtcNow
             });
 
-            await _db.SaveChangesAsync();
+            try
+            {
+                await _db.SaveChangesAsync();
+            }
+            catch (DbUpdateException)
+            {
+                // Trùng do gửi đồng thời (vượt qua kiểm tra alreadyAssigned) - unique index chặn lại
+                return AssignExamResult("De thi nay da duoc giao cho lop.");
+            }
+
             return new AssignExamResultDto { Success = true };
         }
 

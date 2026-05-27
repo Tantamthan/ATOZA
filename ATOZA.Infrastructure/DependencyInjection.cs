@@ -36,6 +36,7 @@ namespace ATOZA.Infrastructure
             services.AddScoped<IExamAttemptService, ExamAttemptService>();
             services.AddScoped<IFileParserService, FileParserService>();
             services.AddScoped<IAdminService, AdminService>();
+            services.AddSingleton<IEmailService, SmtpEmailService>();
 
             return services;
         }
